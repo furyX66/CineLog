@@ -1,0 +1,55 @@
+# .NET / ASP.NET Core
+**/bin/
+**/obj/
+**/*.user
+**/*.suo
+*.sln.docstates
+.vs/
+packages/
+
+# Expo / React Native
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.tsbuildinfo
+app-example
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+/ios
+/android
+
+# macOS / OS
+.DS_Store
+*.pem
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Local env / secrets
+.env*.local
+appsettings.*.json
+
+# IDE
+.vscode/
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+
+# Logs / coverage
+*.log
+coverage/
