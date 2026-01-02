@@ -1,9 +1,12 @@
 import Button from "@/components/button";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { Popcorn } from "lucide-react-native";
 import { Text, View } from "react-native";
 
 export default function Index() {
+  const router = useRouter();
+
   return (
     <LinearGradient
       className="flex-1 items-center justify-end gap-12"
@@ -21,7 +24,9 @@ export default function Index() {
         </Text>
         <View className="w-full gap-6 items-center justify-start flex-1 px-4 mt-8">
           <Button>Sign up</Button>
-          <Button variant="outline">Login</Button>
+          <Button onPress={() => router.navigate("/login")} variant="outline">
+            Login
+          </Button>
         </View>
       </View>
     </LinearGradient>

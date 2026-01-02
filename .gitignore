@@ -20,6 +20,7 @@ yarn-error.*
 *.tsbuildinfo
 app-example
 /mobile/.gitignore
+/mobile/.prettierrc
 
 # Native
 .kotlin/
