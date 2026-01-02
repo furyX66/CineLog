@@ -1,5 +1,5 @@
-import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
 import "../global.css";
 
 export default function RootLayout() {
@@ -11,5 +11,5 @@ export default function RootLayout() {
     DMSansB: require("@/assets/fonts/DMSans-Bold.ttf"),
   });
 
-  return <Stack />;
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
