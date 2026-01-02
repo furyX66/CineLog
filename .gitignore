@@ -19,6 +19,7 @@ yarn-debug.*
 yarn-error.*
 *.tsbuildinfo
 app-example
+/mobile/.gitignore
 
 # Native
 .kotlin/
@@ -53,3 +54,4 @@ appsettings.*.json
 # Logs / coverage
 *.log
 coverage/
+
