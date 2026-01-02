@@ -15,14 +15,14 @@ export default function Index() {
       end={{ x: 1, y: 0 }}
     >
       <Popcorn color="white" size={120} />
-      <View className="bg-white rounded-t-2xl h-[70%] pt-16 items-center w-full">
-        <Text className="text-purple-700 text-4xl font-[DMSansB]">
+      <View className="h-[70%] w-full items-center rounded-t-2xl bg-white pt-16">
+        <Text className="font-[DMSansB] text-4xl text-purple-700">
           Welcome to CineLog
         </Text>
-        <Text className="text-purple-700 text-xl font-[DMSansR]">
+        <Text className="font-[DMSansR] text-xl text-purple-700">
           Your personal cinema diary is ready
         </Text>
-        <View className="w-full gap-6 items-center justify-start flex-1 px-4 mt-8">
+        <View className="mt-8 w-full flex-1 items-center justify-start gap-6 px-4">
           <Button>Sign up</Button>
           <Button onPress={() => router.navigate("/login")} variant="outline">
             Login
