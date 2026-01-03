@@ -23,7 +23,7 @@ export default function Index() {
           Your personal cinema diary is ready
         </Text>
         <View className="mt-8 w-full flex-1 items-center justify-start gap-6 px-4">
-          <Button>Sign up</Button>
+          <Button onPress={() => router.navigate("/register")}>Sign up</Button>
           <Button onPress={() => router.navigate("/login")} variant="outline">
             Login
           </Button>

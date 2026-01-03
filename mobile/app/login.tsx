@@ -15,7 +15,7 @@ export default function Login() {
       <Text className="line-h h-16 font-[DMSansB] text-5xl text-white">
         Login
       </Text>
-      <View className="h-[70%] w-full gap-6 rounded-t-2xl bg-white px-4 pt-16">
+      <View className="h-[70%] w-full gap-4 rounded-t-2xl bg-white px-4 pt-16">
         <View className="gap-2">
           <Text className="font-[DMSansSB] text-purple-700">
             Email or Username
