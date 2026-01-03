@@ -1,8 +1,10 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using api.Dtos;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,8 +43,25 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+static bool IsValidEmail(string email) {
+    if (string.IsNullOrWhiteSpace(email))
+        return false;
+    
+    return Regex.IsMatch(email, 
+        @"^[^@\s]+@[^@\s\.]+\.[^@\.\s]+$");
+}
+
 app.MapPost("/api/auth/register", async (RegisterRequestDto requestDto, ApplicationDbContext db, JwtService jwt) =>
     {
+        if (string.IsNullOrWhiteSpace(requestDto.Username) || requestDto.Username.Length < 3)
+            return Results.BadRequest("Username must be at least 3 characters long");
+  
+        if (!IsValidEmail(requestDto.Email))
+            return Results.BadRequest("Invalid email format (example: user@example.com)");
+    
+        if (requestDto.Password.Length < 8)
+            return Results.BadRequest("Password must be at least 8 characters long");
+
         if (await db.Users.AnyAsync(u => u.Username == requestDto.Username))
             return Results.Conflict("Username is already taken");
 
