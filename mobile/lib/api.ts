@@ -44,6 +44,25 @@ export async function apiPost<T>(
 }
 
 export function extractErrorMessage(fullError: string): string {
-  const match = fullError.match(/Error Message:\s*"([^"]+)"/);
-  return match ? match[1] : fullError;
+  try {
+    const jsonMatch = fullError.match(/Error Message:\s*(\{.*\})/);
+    if (jsonMatch) {
+      const errorJson = JSON.parse(jsonMatch[1]);
+      return (
+        errorJson.detail ||
+        errorJson.title ||
+        errorJson.message ||
+        "Server Error"
+      );
+    }
+
+    const simpleMatch = fullError.match(/Error Message:\s*(.+)$/);
+    if (simpleMatch) {
+      return simpleMatch[1].trim();
+    }
+
+    return fullError;
+  } catch {
+    return fullError;
+  }
 }

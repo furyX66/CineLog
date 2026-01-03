@@ -1,10 +1,30 @@
 import Button from "@/components/button";
 import Input from "@/components/input";
+import { apiPost, extractErrorMessage } from "@/lib/api";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import React, { useState } from "react";
 import { Text, View } from "react-native";
 
 export default function Login() {
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleLogin = async () => {
+    setErrorMessage("");
+    try {
+      const response = await apiPost("/auth/Login", {
+        identifier,
+        password,
+      });
+      console.log("Response: ", response);
+    } catch (err: any) {
+      console.log("Error: ", err);
+      const cleanError = extractErrorMessage(err.message);
+      setErrorMessage(cleanError);
+    }
+  };
+
   return (
     <LinearGradient
       className="flex-1 items-center justify-end gap-12"
@@ -20,13 +40,16 @@ export default function Login() {
           <Text className="font-[DMSansSB] text-purple-700">
             Email or Username
           </Text>
-          <Input />
+          <Input value={identifier} onChangeText={setIdentifier} />
         </View>
         <View className="gap-2">
           <Text className="font-[DMSansSB] text-purple-700">Password</Text>
-          <Input type="password" />
+          <Input value={password} onChangeText={setPassword} type="password" />
         </View>
-        <Button>Login</Button>
+        {errorMessage && (
+          <Text className="font-[DMSansM] text-red-600">{errorMessage}</Text>
+        )}
+        <Button onPress={handleLogin}>Login</Button>
       </View>
     </LinearGradient>
   );
