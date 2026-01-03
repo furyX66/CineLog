@@ -15,8 +15,8 @@ export default function Index() {
       end={{ x: 1, y: 0 }}
     >
       <Popcorn color="white" size={120} />
-      <View className="h-[70%] w-full items-center rounded-t-2xl bg-white pt-16">
-        <Text className="font-[DMSansB] text-4xl text-purple-700">
+      <View className="h-[70%] w-full items-center rounded-t-2xl bg-white pt-8">
+        <Text className="h-12 font-[DMSansB] text-4xl text-purple-700">
           Welcome to CineLog
         </Text>
         <Text className="font-[DMSansR] text-xl text-purple-700">

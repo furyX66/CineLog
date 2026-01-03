@@ -6,10 +6,15 @@ type InputType = "default" | "password";
 
 interface InputProps {
   type?: InputType;
+  value: string;
+  onChangeText: (text: string) => void;
 }
 
-export default function Input({ type = "default" }: InputProps) {
-  const [value, onChangeText] = useState("");
+export default function Input({
+  value,
+  onChangeText,
+  type = "default",
+}: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   const isPasswordVisible = type === "password" && !showPassword;
@@ -19,7 +24,7 @@ export default function Input({ type = "default" }: InputProps) {
       <TextInput
         value={value}
         secureTextEntry={isPasswordVisible}
-        onChangeText={(text) => onChangeText(text)}
+        onChangeText={onChangeText}
         className="h-14 w-full rounded-xl border border-purple-700 bg-white pl-4 pr-12 font-[DMSansM] text-purple-700"
       />
       {type === "password" && (
