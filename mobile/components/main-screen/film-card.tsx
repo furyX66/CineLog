@@ -1,0 +1,74 @@
+import { Bookmark, Star, ThumbsDown, ThumbsUp } from "lucide-react-native";
+import React from "react";
+import { Image, Pressable, Text, View } from "react-native";
+
+interface MovieCardProps {
+  title: string;
+  year: number;
+  genre: string;
+  rating: number;
+  ratingCount: number;
+  description: string;
+  poster?: string;
+}
+
+export default function FilmCard({
+  title,
+  year,
+  genre,
+  rating,
+  ratingCount,
+  description,
+  poster,
+}: MovieCardProps) {
+  return (
+    <View className="w-100 w-full rounded-xl bg-white p-4 shadow-xl">
+      <View className="flex-row gap-4">
+        {poster && (
+          <Image
+            source={{ uri: poster }}
+            className="h-24 w-16 rounded-lg bg-gray-200"
+          />
+        )}
+        <View className="flex-1">
+          <Text className="font-[DMSansB] text-lg">{title}</Text>
+          <Text className="font-[DMSansL] text-sm text-gray-500">
+            {year} • {genre}
+          </Text>
+
+          <View className="mt-2 flex-row items-center gap-2">
+            <Star color={"#FFA500"} size={16} />
+            <Text className="font-[DMSansR] text-orange-400">
+              {rating.toFixed(1)}
+            </Text>
+            <Text className="font-[DMSansL] text-xs text-gray-400">
+              ({ratingCount})
+            </Text>
+          </View>
+        </View>
+      </View>
+      <Text className="mt-3 font-[DMSansR] text-sm leading-5 text-gray-600">
+        {description}
+      </Text>
+      <View className="mt-4 h-14 flex-row gap-2">
+        <Pressable className="flex-1 flex-row items-center justify-center gap-2 rounded-lg bg-gray-100 px-4 py-2">
+          <Bookmark color={"#4A5565"} size={20} />
+          <Text className="font-[DMSansM] text-gray-700">Save</Text>
+        </Pressable>
+
+        <Pressable className="flex-1 items-center justify-center rounded-lg bg-green-100 px-3 py-2">
+          <ThumbsUp color={"#008236"} size={20} />
+        </Pressable>
+
+        <Pressable className="flex-1 items-center justify-center rounded-lg bg-red-100 px-3 py-2">
+          <ThumbsDown color={"#ED213A"} size={20} />
+        </Pressable>
+
+        <Pressable className="flex-[3] flex-row items-center justify-center gap-2 rounded-lg border border-blue-500 py-2">
+          <Star color={"#1447E6"} size={20} />
+          <Text className="font-[DMSansM] text-blue-500">Review</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}

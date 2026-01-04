@@ -47,7 +47,7 @@ export default function StatsGrid({ count }: StatsGridProps) {
     },
   ];
   return (
-    <View className="w-full flex-row flex-wrap justify-center gap-3 pt-2">
+    <View className="w-full flex-row flex-wrap justify-center gap-3">
       {stats?.map((stat, i) => (
         <Pressable
           onPress={() => router.push(`/${stat.route}` as Href)}
