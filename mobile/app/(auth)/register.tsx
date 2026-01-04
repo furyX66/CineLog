@@ -1,8 +1,11 @@
 import Button from "@/components/button";
 import Input from "@/components/input";
 import { apiPost, extractErrorMessage } from "@/lib/api";
+import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
+import { useRouter } from "expo-router";
+
 import {
   KeyboardAvoidingView,
   Platform,
@@ -13,7 +16,7 @@ import {
 
 interface RegisterResponse {
   token: string;
-  user: { id: number; username: string };
+  user: { id: number; username: string; email: string };
 }
 
 export default function Register() {
@@ -22,6 +25,8 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
+  const { login } = useAuth();
 
   const handleSignUp = async () => {
     setErrorMessage("");
@@ -30,11 +35,13 @@ export default function Register() {
       return;
     }
     try {
-      const response = await apiPost("/auth/register", {
+      const response: RegisterResponse = await apiPost("/auth/register", {
         username,
         email,
         password,
       });
+      await login(response.token, response.user);
+      router.replace("/_sitemap");
       console.log("Response: ", response);
     } catch (err: any) {
       console.log("Error: ", err);

@@ -1,3 +1,4 @@
+import { AuthProvider } from "@/stores/auth-context";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import "../global.css";
@@ -11,5 +12,12 @@ export default function RootLayout() {
     DMSansB: require("@/assets/fonts/DMSans-Bold.ttf"),
   });
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <AuthProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(app)" />
+      </Stack>
+    </AuthProvider>
+  );
 }
