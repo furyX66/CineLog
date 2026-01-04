@@ -28,7 +28,8 @@ export default function Login() {
       });
       console.log("Response: ", response);
       await login(response.token, response.user);
-      router.replace("/_sitemap");
+      router.dismissAll();
+      router.replace("/(tabs)");
     } catch (err: any) {
       console.log("Error: ", err);
       const cleanError = extractErrorMessage(err.message);
@@ -61,7 +62,6 @@ export default function Login() {
           <Text className="font-[DMSansM] text-red-600">{errorMessage}</Text>
         )}
         <Button onPress={handleLogin}>Login</Button>
-        <Button onPress={() => router.replace("/_sitemap")}>Replace</Button>
       </View>
     </LinearGradient>
   );

@@ -1,11 +1,21 @@
+import Button from "@/components/button";
 import FilmCard from "@/components/main-screen/film-card";
+import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import { FlatList, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StatsGrid from "../../components/main-screen/stats-grid";
 
 export default function index() {
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/welcome-screen");
+  };
+
   const [movies] = useState([
     {
       id: "1",
@@ -15,7 +25,7 @@ export default function index() {
       rating: 5.0,
       ratingCount: 1,
       description: "Two imprisoned men bond over a number of years...",
-      poster: "https://via.placeholder.com/100x150",
+      poster: "https://m.media-amazon.com/images/I/815qtzaP9iL._AC_SX569_.jpg",
     },
     {
       id: "2",
@@ -62,6 +72,10 @@ export default function index() {
         <Text className="font-[DMSansM] text-white">
           Your personal movie companion
         </Text>
+        {/* Temporary */}
+        <Button className="w-[250px]" onPress={handleLogout}>
+          Logout
+        </Button>
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}

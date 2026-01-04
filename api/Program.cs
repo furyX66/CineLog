@@ -92,7 +92,7 @@ app.MapPost("/api/auth/register", async (RegisterRequestDto requestDto, Applicat
 app.MapPost("/api/auth/login", async (LoginRequestDto requestDto, ApplicationDbContext db, JwtService jwt) =>
     {
         var user = await db.Users
-            .FirstOrDefaultAsync(u => u.Username == requestDto.Identifier || u.Email == requestDto.Identifier);
+            .FirstOrDefaultAsync(u => u.Username == requestDto.Identifier.Trim() || u.Email == requestDto.Identifier);
         
         if (user is null || !BCrypt.Net.BCrypt.Verify(requestDto.Password, user.PasswordHash))
             return Results.Problem("Invalid credentials", statusCode: 401); 

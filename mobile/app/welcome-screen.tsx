@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { Popcorn } from "lucide-react-native";
 import { Text, View } from "react-native";
 
-export default function Index() {
+export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
@@ -23,8 +23,13 @@ export default function Index() {
           Your personal cinema diary is ready
         </Text>
         <View className="mt-8 w-full flex-1 items-center justify-start gap-6 px-4">
-          <Button onPress={() => router.navigate("/register")}>Sign up</Button>
-          <Button onPress={() => router.navigate("/login")} variant="outline">
+          <Button onPress={() => router.navigate("/auth/register")}>
+            Sign up
+          </Button>
+          <Button
+            onPress={() => router.navigate("/auth/login")}
+            variant="outline"
+          >
             Login
           </Button>
         </View>

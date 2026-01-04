@@ -1,10 +1,11 @@
-import { AuthProvider } from "@/stores/auth-context";
+import { AuthProvider, useAuth } from "@/stores/auth-context";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import "../global.css";
 
-export default function RootLayout() {
-  useFonts({
+function RootLayoutContent() {
+  const { loading, isAuthenticated } = useAuth();
+  const [fontsLoaded] = useFonts({
     DMSansL: require("@/assets/fonts/DMSans-ExtraLight.ttf"),
     DMSansR: require("@/assets/fonts/DMSans-Regular.ttf"),
     DMSansM: require("@/assets/fonts/DMSans-Medium.ttf"),
@@ -12,12 +13,25 @@ export default function RootLayout() {
     DMSansB: require("@/assets/fonts/DMSans-Bold.ttf"),
   });
 
+  if (!fontsLoaded || loading) {
+    return null;
+  }
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      {isAuthenticated ? (
+        <Stack.Screen name="(tabs)" />
+      ) : (
+        <Stack.Screen name="welcome-page" />
+      )}
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
   return (
     <AuthProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(app)" />
-      </Stack>
+      <RootLayoutContent />
     </AuthProvider>
   );
 }

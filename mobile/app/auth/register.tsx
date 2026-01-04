@@ -3,8 +3,8 @@ import Input from "@/components/input";
 import { apiPost, extractErrorMessage } from "@/lib/api";
 import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useState } from "react";
 import { useRouter } from "expo-router";
+import React, { useState } from "react";
 
 import {
   KeyboardAvoidingView,
@@ -41,7 +41,8 @@ export default function Register() {
         password,
       });
       await login(response.token, response.user);
-      router.replace("/_sitemap");
+      router.dismissAll();
+      router.replace("/(tabs)");
       console.log("Response: ", response);
     } catch (err: any) {
       console.log("Error: ", err);
