@@ -47,12 +47,12 @@ export default function StatsGrid({ count }: StatsGridProps) {
     },
   ];
   return (
-    <View className="flex-row flex-wrap justify-center gap-3 pt-2">
+    <View className="w-full flex-row flex-wrap justify-center gap-3 pt-2">
       {stats?.map((stat, i) => (
         <Pressable
           onPress={() => router.push(`/${stat.route}` as Href)}
           key={i}
-          className="flex-1 items-center justify-center rounded-xl bg-white p-4 shadow-2xl"
+          className="w-[47%] items-center justify-center rounded-xl bg-white p-4 shadow-2xl"
         >
           <Text className="font-[DMSansM] text-xl">{stat.label}</Text>
           <Text className={`font-[DMSansB] text-2xl ${stat.color}`}>

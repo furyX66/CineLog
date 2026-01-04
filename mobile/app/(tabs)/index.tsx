@@ -24,6 +24,7 @@ export default function index() {
         <StatsGrid
           count={{ reviewed: 4, watchLater: 2, liked: 3, disliked: 1 }}
         />
+        <Text className="text-Black mt-10 font-[DMSansM]">All movies</Text>
       </ScrollView>
     </LinearGradient>
   );
