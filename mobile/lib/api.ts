@@ -48,21 +48,24 @@ export function extractErrorMessage(fullError: string): string {
     const jsonMatch = fullError.match(/Error Message:\s*(\{.*\})/);
     if (jsonMatch) {
       const errorJson = JSON.parse(jsonMatch[1]);
-      return (
+      let message =
         errorJson.detail ||
         errorJson.title ||
         errorJson.message ||
-        "Server Error"
-      );
+        "Server Error";
+
+      message = message.replace(/^["']+|["']+$/g, "");
+      return message;
     }
 
     const simpleMatch = fullError.match(/Error Message:\s*(.+)$/);
     if (simpleMatch) {
-      return simpleMatch[1].trim();
+      let message = simpleMatch[1].trim();
+      message = message.replace(/^["']+|["']+$/g, "");
+      return message;
     }
-
-    return fullError;
+    return fullError.replace(/^["']+|["']+$/g, "");
   } catch {
-    return fullError;
+    return fullError.replace(/^["']+|["']+$/g, "");
   }
 }
