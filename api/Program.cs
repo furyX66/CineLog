@@ -1,10 +1,11 @@
-using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using api.Dtos;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,14 +25,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
-            
         };
     });
 
-Console.WriteLine($"Key from program: {builder.Configuration["Jwt:Key"]!}");
-
+builder.Services.AddAuthorization();
 builder.Services.AddScoped<JwtService>();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -43,22 +41,51 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-static bool IsValidEmail(string email) {
+app.UseAuthentication();
+app.UseAuthorization();
+
+#region Helpers
+
+static bool IsValidEmail(string email)
+{
     if (string.IsNullOrWhiteSpace(email))
         return false;
-    
-    return Regex.IsMatch(email, 
+
+    return Regex.IsMatch(email,
         @"^[^@\s]+@[^@\s\.]+\.[^@\.\s]+$");
 }
 
+static int GetUserId(HttpContext http)
+{
+    var userIdClaim = http.User.FindFirst(ClaimTypes.NameIdentifier);
+    ArgumentNullException.ThrowIfNull(userIdClaim);
+    return int.Parse(userIdClaim.Value);
+}
+
+static async Task<UserMovie> GetOrCreateUserMovie(ApplicationDbContext db, int userId, int movieId)
+{
+    var userMovie = await db.UserMovies
+        .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+
+    if (userMovie is null)
+    {
+        userMovie = new UserMovie { UserId = userId, MovieId = movieId };
+        db.UserMovies.Add(userMovie);
+    }
+    return userMovie;
+}
+
+#endregion
+
+#region Register
 app.MapPost("/api/auth/register", async (RegisterRequestDto requestDto, ApplicationDbContext db, JwtService jwt) =>
     {
         if (string.IsNullOrWhiteSpace(requestDto.Username) || requestDto.Username.Length < 3)
             return Results.BadRequest("Username must be at least 3 characters long");
-  
+
         if (!IsValidEmail(requestDto.Email))
             return Results.BadRequest("Invalid email format (example: user@example.com)");
-    
+
         if (requestDto.Password.Length < 8)
             return Results.BadRequest("Password must be at least 8 characters long");
 
@@ -77,7 +104,7 @@ app.MapPost("/api/auth/register", async (RegisterRequestDto requestDto, Applicat
 
         db.Users.Add(user);
         await db.SaveChangesAsync();
-        
+
         var token = jwt.GenerateToken(user);
 
         return Results.Created($"/api/users/{user.Id}",
@@ -85,25 +112,98 @@ app.MapPost("/api/auth/register", async (RegisterRequestDto requestDto, Applicat
                 User: new UserResponseDto(user.Id, user.Username, user.Email),
                 Token: token
             ));
-
     })
     .WithName("Register");
+#endregion
 
+#region Login
 app.MapPost("/api/auth/login", async (LoginRequestDto requestDto, ApplicationDbContext db, JwtService jwt) =>
     {
         var user = await db.Users
             .FirstOrDefaultAsync(u => u.Username == requestDto.Identifier.Trim() || u.Email == requestDto.Identifier);
-        
+
         if (user is null || !BCrypt.Net.BCrypt.Verify(requestDto.Password, user.PasswordHash))
-            return Results.Problem("Invalid credentials", statusCode: 401); 
-        
+            return Results.Problem("Invalid credentials", statusCode: 401);
+
         var token = jwt.GenerateToken(user);
 
-        return Results.Ok( new AuthResponseDto(
+        return Results.Ok(new AuthResponseDto(
             User: new UserResponseDto(user.Id, user.Username, user.Email),
             Token: token
         ));
     })
     .WithName("Login");
+#endregion
 
+#region Watchlist
+app.MapPost("/api/movies/{movieId}/watchlist", 
+        [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
+        {
+            var userId = GetUserId(http);
+            var movie = await db.Movies.FindAsync(movieId);
+            if (movie is null) return Results.NotFound("Movie not found");
+
+            var userMovie = await GetOrCreateUserMovie(db, userId, movieId);
+            userMovie.InWatchlist = !userMovie.InWatchlist;
+
+            await db.SaveChangesAsync();
+            return Results.Ok(new { movieId, inWatchlist = userMovie.InWatchlist });
+        })
+    .WithName("ToggleWatchlist");
+#endregion
+
+#region LikeToggle
+app.MapPost("/api/movies/{movieId}/like", 
+        [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
+        {
+            var userId = GetUserId(http);
+            var movie = await db.Movies.FindAsync(movieId);
+            if (movie is null) return Results.NotFound("Movie not found");
+
+            var userMovie = await GetOrCreateUserMovie(db, userId, movieId);
+            
+            userMovie.IsLiked = !userMovie.IsLiked;
+            if (userMovie.IsLiked) userMovie.IsDisliked = false;
+
+            await db.SaveChangesAsync();
+            return Results.Ok(new { movieId, isLiked = userMovie.IsLiked });
+        })
+    .WithName("ToggleLike");
+#endregion
+
+#region DislikeToggle
+app.MapPost("/api/movies/{movieId}/dislike", 
+        [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
+        {
+            var userId = GetUserId(http);
+            var movie = await db.Movies.FindAsync(movieId);
+            if (movie is null) return Results.NotFound("Movie not found");
+
+            var userMovie = await GetOrCreateUserMovie(db, userId, movieId);
+            
+            userMovie.IsDisliked = !userMovie.IsDisliked;
+            if (userMovie.IsDisliked) userMovie.IsLiked = false;
+
+            await db.SaveChangesAsync();
+            return Results.Ok(new { movieId, isDisliked = userMovie.IsDisliked });
+        })
+    .WithName("ToggleDislike");
+#endregion
+
+#region Watched
+app.MapPost("/api/movies/{movieId}/watched", 
+        [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
+        {
+            var userId = GetUserId(http);
+            var movie = await db.Movies.FindAsync(movieId);
+            if (movie is null) return Results.NotFound("Movie not found");
+
+            var userMovie = await GetOrCreateUserMovie(db, userId, movieId);
+            userMovie.IsWatched = !userMovie.IsWatched;
+
+            await db.SaveChangesAsync();
+            return Results.Ok(new { movieId, isWatched = userMovie.IsWatched });
+        })
+    .WithName("ToggleWatched");
+#endregion
 app.Run();

@@ -9,4 +9,6 @@ public class User
     public string Email { get; set; } = string.Empty;
     [MinLength(8), MaxLength(500)] 
     public string PasswordHash { get; set; } = string.Empty; 
+    
+    public ICollection<UserMovie> UserMovies { get; set; } = new List<UserMovie>();
 }
