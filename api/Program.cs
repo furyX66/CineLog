@@ -28,6 +28,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddHttpClient();
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddEndpointsApiExplorer();
@@ -72,12 +73,14 @@ static async Task<UserMovie> GetOrCreateUserMovie(ApplicationDbContext db, int u
         userMovie = new UserMovie { UserId = userId, MovieId = movieId };
         db.UserMovies.Add(userMovie);
     }
+
     return userMovie;
 }
 
 #endregion
 
 #region Register
+
 app.MapPost("/api/auth/register", async (RegisterRequestDto requestDto, ApplicationDbContext db, JwtService jwt) =>
     {
         if (string.IsNullOrWhiteSpace(requestDto.Username) || requestDto.Username.Length < 3)
@@ -114,9 +117,11 @@ app.MapPost("/api/auth/register", async (RegisterRequestDto requestDto, Applicat
             ));
     })
     .WithName("Register");
+
 #endregion
 
 #region Login
+
 app.MapPost("/api/auth/login", async (LoginRequestDto requestDto, ApplicationDbContext db, JwtService jwt) =>
     {
         var user = await db.Users
@@ -133,10 +138,12 @@ app.MapPost("/api/auth/login", async (LoginRequestDto requestDto, ApplicationDbC
         ));
     })
     .WithName("Login");
+
 #endregion
 
 #region Watchlist
-app.MapPost("/api/movies/{movieId}/watchlist", 
+
+app.MapPost("/api/movies/{movieId}/watchlist",
         [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
         {
             var userId = GetUserId(http);
@@ -150,10 +157,12 @@ app.MapPost("/api/movies/{movieId}/watchlist",
             return Results.Ok(new { movieId, inWatchlist = userMovie.InWatchlist });
         })
     .WithName("ToggleWatchlist");
+
 #endregion
 
 #region LikeToggle
-app.MapPost("/api/movies/{movieId}/like", 
+
+app.MapPost("/api/movies/{movieId}/like",
         [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
         {
             var userId = GetUserId(http);
@@ -161,7 +170,7 @@ app.MapPost("/api/movies/{movieId}/like",
             if (movie is null) return Results.NotFound("Movie not found");
 
             var userMovie = await GetOrCreateUserMovie(db, userId, movieId);
-            
+
             userMovie.IsLiked = !userMovie.IsLiked;
             if (userMovie.IsLiked) userMovie.IsDisliked = false;
 
@@ -169,10 +178,12 @@ app.MapPost("/api/movies/{movieId}/like",
             return Results.Ok(new { movieId, isLiked = userMovie.IsLiked });
         })
     .WithName("ToggleLike");
+
 #endregion
 
 #region DislikeToggle
-app.MapPost("/api/movies/{movieId}/dislike", 
+
+app.MapPost("/api/movies/{movieId}/dislike",
         [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
         {
             var userId = GetUserId(http);
@@ -180,7 +191,7 @@ app.MapPost("/api/movies/{movieId}/dislike",
             if (movie is null) return Results.NotFound("Movie not found");
 
             var userMovie = await GetOrCreateUserMovie(db, userId, movieId);
-            
+
             userMovie.IsDisliked = !userMovie.IsDisliked;
             if (userMovie.IsDisliked) userMovie.IsLiked = false;
 
@@ -188,10 +199,12 @@ app.MapPost("/api/movies/{movieId}/dislike",
             return Results.Ok(new { movieId, isDisliked = userMovie.IsDisliked });
         })
     .WithName("ToggleDislike");
+
 #endregion
 
 #region Watched
-app.MapPost("/api/movies/{movieId}/watched", 
+
+app.MapPost("/api/movies/{movieId}/watched",
         [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
         {
             var userId = GetUserId(http);
@@ -205,5 +218,109 @@ app.MapPost("/api/movies/{movieId}/watched",
             return Results.Ok(new { movieId, isWatched = userMovie.IsWatched });
         })
     .WithName("ToggleWatched");
+
 #endregion
+
+#region GetLiked
+
+app.MapGet("/api/movies/liked",
+        [Authorize] async (ApplicationDbContext db, HttpContext http) =>
+        {
+            var userId = GetUserId(http);
+
+            var likedMovies = await db.UserMovies
+                .Where(um => um.UserId == userId && um.IsLiked)
+                .Include(um => um.Movie)
+                .Select(um => new
+                {
+                    um.Movie.Id,
+                    um.Movie.Title,
+                    um.Movie.PosterUrl,
+                    um.Movie.Rating,
+                    um.Movie.ReleaseYear,
+                    um.IsWatched,
+                    um.UserRating
+                })
+                .ToListAsync();
+
+            return Results.Ok(likedMovies);
+        })
+    .WithName("GetLikedMovies");
+
+#endregion
+
+#region GetDislikeMovies
+app.MapGet("/api/movies/disliked",
+        [Authorize] async (ApplicationDbContext db, HttpContext http) =>
+        {
+            var userId = GetUserId(http);
+
+            var dislikedMovies = await db.UserMovies
+                .Where(um => um.UserId == userId && um.IsDisliked)
+                .Include(um => um.Movie)
+                .Select(um => new
+                {
+                    um.Movie.Id,
+                    um.Movie.Title,
+                    um.Movie.PosterUrl,
+                    um.Movie.Rating,
+                    um.Movie.ReleaseYear
+                })
+                .ToListAsync();
+
+            return Results.Ok(dislikedMovies);
+        })
+    .WithName("GetDislikedMovies");
+#endregion
+
+#region GetWatchedMovies
+app.MapGet("/api/movies/watched",
+        [Authorize] async (ApplicationDbContext db, HttpContext http) =>
+        {
+            var userId = GetUserId(http);
+
+            var watchedMovies = await db.UserMovies
+                .Where(um => um.UserId == userId && um.IsWatched)
+                .Include(um => um.Movie)
+                .Select(um => new
+                {
+                    um.Movie.Id,
+                    um.Movie.Title,
+                    um.Movie.PosterUrl,
+                    um.Movie.Rating,
+                    um.Movie.ReleaseYear,
+                    um.UserRating,
+                    um.IsLiked,
+                    um.IsDisliked
+                })
+                .ToListAsync();
+
+            return Results.Ok(watchedMovies);
+        })
+    .WithName("GetWatchedMovies");
+#endregion
+
+#region GetWatchlist
+app.MapGet("/api/movies/watchlist",
+    [Authorize] async (ApplicationDbContext db, HttpContext http) =>
+    {
+        var userId = GetUserId(http);
+
+        var watchlist = await db.UserMovies
+            .Where(um => um.UserId == userId && um.InWatchlist)
+            .Include(um => um.Movie)
+            .Select(um => new
+            {
+                um.Movie.Id,
+                um.Movie.Title,
+                um.Movie.PosterUrl,
+                um.Movie.Rating,
+                um.Movie.ReleaseYear
+            })
+            .ToListAsync();
+
+        return Results.Ok(watchlist);
+    }).WithName("GetWatchlist");
+#endregion
+
 app.Run();
