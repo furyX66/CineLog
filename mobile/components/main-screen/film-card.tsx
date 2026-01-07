@@ -1,12 +1,28 @@
-import { IMovie } from "@/app/interfaces/IMovie";
+import { IMovieBase } from "@/interfaces/IMovieBase";
 import { getGenreNames } from "@/lib/tmdb";
+import { Href, router } from "expo-router";
 import { Bookmark, Star, ThumbsDown, ThumbsUp } from "lucide-react-native";
 import React from "react";
 import { Image, Pressable, Text, View } from "react-native";
 
-export default function FilmCard({ movie }: { movie: IMovie }) {
+interface IFilmCardProps {
+  movie: IMovie;
+  href?: string;
+}
+
+interface IMovie extends IMovieBase {
+  genre_ids: number[];
+}
+
+export default function FilmCard({ movie, href }: IFilmCardProps) {
+  const handleNavigation = () => {
+    router.navigate(href as Href);
+  };
   return (
-    <View className="w-100 w-full rounded-xl bg-white p-4 shadow-xl">
+    <Pressable
+      onPress={handleNavigation}
+      className="w-100 w-full rounded-xl bg-white p-4 shadow-xl"
+    >
       <View className="flex-row gap-4">
         {movie.poster_path && (
           <Image
@@ -55,6 +71,6 @@ export default function FilmCard({ movie }: { movie: IMovie }) {
           <Text className="font-[DMSansM] text-blue-500">Review</Text>
         </Pressable>
       </View>
-    </View>
+    </Pressable>
   );
 }

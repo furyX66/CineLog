@@ -9,13 +9,17 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StatsGrid from "../../components/main-screen/stats-grid";
-import { IMovie } from "../interfaces/IMovie";
+import { IMovieBase } from "../../interfaces/IMovieBase";
 
 interface ITMDBResponse {
   page: number;
   results: IMovie[];
   total_pages: number;
   total_results: number;
+}
+
+interface IMovie extends IMovieBase {
+  genre_ids: number[];
 }
 
 export default function Index() {
@@ -25,12 +29,17 @@ export default function Index() {
   const [loading, setLoading] = useState<boolean>(false);
   const [totalPages, setTotalPages] = useState<number>(0);
   const TMDBapiKey = process.env.EXPO_PUBLIC_TMDB_API_TOKEN;
+  const insets = useSafeAreaInsets();
 
   const fetchMovies = async (pageNum: number) => {
     try {
       setLoading(true);
       const url = tmdbEndpoints.discoverMovies(pageNum, "popularity.desc");
-      const data = await apiGet<ITMDBResponse>(undefined, TMDBapiKey, url);
+      const data: ITMDBResponse = await apiGet<ITMDBResponse>(
+        undefined,
+        TMDBapiKey,
+        url,
+      );
 
       if (pageNum === 1) {
         setMovies(data.results);
@@ -61,7 +70,6 @@ export default function Index() {
     }
   };
 
-  const insets = useSafeAreaInsets();
   return (
     <LinearGradient
       style={{ paddingTop: insets.top + 12 }}
@@ -91,7 +99,9 @@ export default function Index() {
           }}
           data={movies}
           keyExtractor={(item, index) => `${item.id}-${index}`}
-          renderItem={({ item }) => <FilmCard movie={item} />}
+          renderItem={({ item }) => (
+            <FilmCard movie={item} href={`/movie/${item.id}`} />
+          )}
           ListHeaderComponent={
             <View className="gap-8">
               <StatsGrid
@@ -104,11 +114,6 @@ export default function Index() {
           }
           ListFooterComponent={
             loading ? <ActivityIndicator size="large" color="#F5AF19" /> : null
-          }
-          ListEmptyComponent={
-            <Text className="mb-4 font-[DMSansB] text-3xl text-orange-500">
-              Sorry, we have problems with loading movies now
-            </Text>
           }
           onEndReached={handleLoadMore}
           removeClippedSubviews={true}
