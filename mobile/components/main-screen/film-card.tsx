@@ -1,4 +1,5 @@
 import { IMovie } from "@/app/interfaces/IMovie";
+import { getGenreNames } from "@/lib/tmdb";
 import { Bookmark, Star, ThumbsDown, ThumbsUp } from "lucide-react-native";
 import React from "react";
 import { Image, Pressable, Text, View } from "react-native";
@@ -17,8 +18,11 @@ export default function FilmCard({ movie }: { movie: IMovie }) {
         )}
         <View className="flex-1">
           <Text className="font-[DMSansB] text-lg">{movie.title}</Text>
+          <Text className="font-[DMSansL] text-sm text-black">
+            {getGenreNames(movie.genre_ids)}
+          </Text>
           <Text className="font-[DMSansL] text-sm text-gray-500">
-            {movie.release_date} • {movie.genre_ids}
+            {movie.release_date}
           </Text>
 
           <View className="mt-2 flex-row items-center gap-2">

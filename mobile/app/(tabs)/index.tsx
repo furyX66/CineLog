@@ -6,7 +6,7 @@ import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { FlatList, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StatsGrid from "../../components/main-screen/stats-grid";
 import { IMovie } from "../interfaces/IMovie";
@@ -21,62 +21,45 @@ interface ITMDBResponse {
 export default function Index() {
   const { logout } = useAuth();
   const [movies, setMovies] = useState<IMovie[]>([]);
-  const TMDBapiKey = process.env.EXPO_PUBLIC_TMDB_API_KEY;
+  const [page, setPage] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const TMDBapiKey = process.env.EXPO_PUBLIC_TMDB_API_TOKEN;
+
+  const fetchMovies = async (pageNum: number) => {
+    try {
+      setLoading(true);
+      const url = tmdbEndpoints.discoverMovies(pageNum, "popularity.desc");
+      const data = await apiGet<ITMDBResponse>(undefined, TMDBapiKey, url);
+
+      if (pageNum === 1) {
+        setMovies(data.results);
+      } else {
+        setMovies((prev) => [...prev, ...data.results]);
+      }
+      setTotalPages(data.total_pages);
+      setPage(pageNum);
+    } catch (error) {
+      console.error("Fetch movies error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchMovies = async () => {
-      const url = tmdbEndpoints.discoverMovies(1, "popularity.desc");
-      const data = await apiGet<ITMDBResponse>(undefined, TMDBapiKey, url);
-      setMovies(data.results);
-    };
-    fetchMovies();
-  }, [movies, TMDBapiKey]);
+    fetchMovies(1);
+  }, []);
 
   const handleLogout = async () => {
     await logout();
     router.replace("/welcome-screen");
   };
-  //   {
-  //     id: "1",
-  //     title: "The Shawshank Redemption",
-  //     year: 1994,
-  //     genre: "Drama",
-  //     rating: 5.0,
-  //     ratingCount: 1,
-  //     description: "Two imprisoned men bond over a number of years...",
-  //     poster: "https://m.media-amazon.com/images/I/815qtzaP9iL._AC_SX569_.jpg",
-  //   },
-  //   {
-  //     id: "2",
-  //     title: "The Godfather",
-  //     year: 1972,
-  //     genre: "Crime, Drama",
-  //     rating: 4.9,
-  //     ratingCount: 5,
-  //     description: "The aging patriarch of an organized crime dynasty...",
-  //     poster: "https://via.placeholder.com/100x150",
-  //   },
-  //   {
-  //     id: "3",
-  //     title: "The Dark Knight",
-  //     year: 2008,
-  //     genre: "Action, Crime",
-  //     rating: 4.8,
-  //     ratingCount: 3,
-  //     description: "When the menace known as the Joker emerges...",
-  //     poster: "https://via.placeholder.com/100x150",
-  //   },
-  //   {
-  //     id: "4",
-  //     title: "Inception",
-  //     year: 2010,
-  //     genre: "Sci-Fi, Thriller",
-  //     rating: 4.7,
-  //     ratingCount: 8,
-  //     description: "A skilled thief who steals corporate secrets...",
-  //     poster: "https://via.placeholder.com/100x150",
-  //   },
-  // ]);
+
+  const handleLoadMore = () => {
+    if (!loading && page < totalPages) {
+      fetchMovies(page + 1);
+    }
+  };
 
   const insets = useSafeAreaInsets();
   return (
@@ -97,32 +80,45 @@ export default function Index() {
           Logout
         </Button>
       </View>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        className="w-full rounded-t-2xl bg-white pt-4"
-      >
-        <StatsGrid
-          count={{ watchLater: 2, liked: 3, disliked: 1, reviewed: 4 }}
-        />
+      <View className="w-full flex-1 rounded-t-2xl bg-white">
         <FlatList
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 12,
             paddingTop: 20,
-            gap: 12,
+            gap: 8,
             paddingBottom: 32,
           }}
           data={movies}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
           renderItem={({ item }) => <FilmCard movie={item} />}
           ListHeaderComponent={
+            <View className="gap-8">
+              <StatsGrid
+                count={{ watchLater: 2, liked: 3, disliked: 1, reviewed: 4 }}
+              />
+              <Text className="mb-4 font-[DMSansB] text-3xl text-orange-500">
+                All movies
+              </Text>
+            </View>
+          }
+          ListFooterComponent={
+            loading ? <ActivityIndicator size="large" color="#F5AF19" /> : null
+          }
+          ListEmptyComponent={
             <Text className="mb-4 font-[DMSansB] text-3xl text-orange-500">
-              All movies
+              Sorry, we have problems with loading movies now
             </Text>
           }
-          scrollEnabled={false}
+          onEndReached={handleLoadMore}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          initialNumToRender={10}
+          onEndReachedThreshold={0.5}
+          scrollEnabled={true}
         />
-      </ScrollView>
+      </View>
     </LinearGradient>
   );
 }
