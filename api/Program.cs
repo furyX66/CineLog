@@ -203,7 +203,7 @@ app.MapPost("/api/movies/{movieId}/dislike",
 
 #endregion
 
-#region Watched
+#region GetWatched
 
 app.MapPost("/api/movies/{movieId}/watched",
         [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
