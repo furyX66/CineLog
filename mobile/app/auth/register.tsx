@@ -1,8 +1,11 @@
 import Button from "@/components/button";
 import Input from "@/components/input";
 import { apiPost, extractErrorMessage } from "@/lib/api";
+import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
+
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,9 +14,9 @@ import {
   View,
 } from "react-native";
 
-interface RegisterResponse {
+interface IRegisterResponse {
   token: string;
-  user: { id: number; username: string };
+  user: { id: number; username: string; email: string };
 }
 
 export default function Register() {
@@ -22,6 +25,8 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
+  const { login } = useAuth();
 
   const handleSignUp = async () => {
     setErrorMessage("");
@@ -30,11 +35,17 @@ export default function Register() {
       return;
     }
     try {
-      const response = await apiPost("/auth/register", {
-        username,
-        email,
-        password,
-      });
+      const response: IRegisterResponse = await apiPost(
+        {
+          username,
+          email,
+          password,
+        },
+        "/auth/register",
+      );
+      await login(response.token, response.user);
+      router.dismissAll();
+      router.replace("/(tabs)");
       console.log("Response: ", response);
     } catch (err: any) {
       console.log("Error: ", err);

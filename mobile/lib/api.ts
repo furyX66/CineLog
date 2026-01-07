@@ -1,11 +1,12 @@
 const BASE_URL = "http://192.168.100.3:5220/api";
 
 export async function apiFetch<T>(
-  endpoint: string,
+  endpoint?: string,
   options: RequestInit = {},
   token?: string,
+  externalUrl?: string,
 ): Promise<T> {
-  const url = `${BASE_URL}${endpoint}`;
+  const url = externalUrl ? `${externalUrl}` : `${BASE_URL}${endpoint}`;
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -27,19 +28,25 @@ export async function apiFetch<T>(
   return response.json() as Promise<T>;
 }
 
-export async function apiGet<T>(endpoint: string, token?: string): Promise<T> {
-  return apiFetch<T>(endpoint, { method: "GET" }, token);
+export async function apiGet<T>(
+  endpoint?: string,
+  token?: string,
+  externalUrl?: string,
+): Promise<T> {
+  return apiFetch<T>(endpoint, { method: "GET" }, token, externalUrl);
 }
 
 export async function apiPost<T>(
-  endpoint: string,
   body: any,
+  endpoint?: string,
   token?: string,
+  externalUrl?: string,
 ): Promise<T> {
   return apiFetch<T>(
     endpoint,
     { method: "POST", body: JSON.stringify(body) },
     token,
+    externalUrl,
   );
 }
 

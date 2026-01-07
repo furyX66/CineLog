@@ -41,6 +41,7 @@ ehthumbs.db
 Desktop.ini
 
 # Local env / secrets
+.env
 .env*.local
 appsettings.*.json
 

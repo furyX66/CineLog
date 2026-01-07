@@ -1,23 +1,38 @@
 import Button from "@/components/button";
 import Input from "@/components/input";
 import { apiPost, extractErrorMessage } from "@/lib/api";
+import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Text, View } from "react-native";
+
+interface ILoginResponse {
+  token: string;
+  user: { id: number; username: string; email: string };
+}
 
 export default function Login() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     setErrorMessage("");
     try {
-      const response = await apiPost("/auth/Login", {
-        identifier,
-        password,
-      });
+      const response: ILoginResponse = await apiPost(
+        {
+          identifier,
+          password,
+        },
+        "/auth/Login",
+      );
       console.log("Response: ", response);
+      await login(response.token, response.user);
+      router.dismissAll();
+      router.replace("/(tabs)");
     } catch (err: any) {
       console.log("Error: ", err);
       const cleanError = extractErrorMessage(err.message);

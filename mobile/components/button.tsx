@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { clsx } from "clsx";
 import React from "react";
 import { GestureResponderEvent, Text, TouchableOpacity } from "react-native";
 
@@ -8,6 +8,7 @@ interface ButtonProps {
   children?: React.ReactNode;
   variant?: ButtonVariants;
   onPress?: (event: GestureResponderEvent) => void;
+  className?: string;
 }
 
 const baseStyles = "items-center justify-center rounded-xl h-14 w-full";
@@ -27,8 +28,13 @@ export default function Button({
   children,
   onPress,
   variant = "default",
+  className,
 }: ButtonProps) {
-  const buttonStyles = clsx(baseStyles, buttonVariantStyles[variant]);
+  const buttonStyles = clsx(
+    baseStyles,
+    className,
+    buttonVariantStyles[variant],
+  );
   const textStyles = clsx(textBase, textVariantStyles[variant]);
   return (
     <TouchableOpacity
