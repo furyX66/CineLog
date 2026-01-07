@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { clsx } from "clsx";
 import React from "react";
 import { GestureResponderEvent, Text, TouchableOpacity } from "react-native";
 

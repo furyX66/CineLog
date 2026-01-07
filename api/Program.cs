@@ -32,6 +32,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();

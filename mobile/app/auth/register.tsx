@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 
-interface RegisterResponse {
+interface IRegisterResponse {
   token: string;
   user: { id: number; username: string; email: string };
 }
@@ -35,11 +35,14 @@ export default function Register() {
       return;
     }
     try {
-      const response: RegisterResponse = await apiPost("/auth/register", {
-        username,
-        email,
-        password,
-      });
+      const response: IRegisterResponse = await apiPost(
+        {
+          username,
+          email,
+          password,
+        },
+        "/auth/register",
+      );
       await login(response.token, response.user);
       router.dismissAll();
       router.replace("/(tabs)");

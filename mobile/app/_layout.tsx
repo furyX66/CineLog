@@ -22,7 +22,7 @@ function RootLayoutContent() {
       {isAuthenticated ? (
         <Stack.Screen name="(tabs)" />
       ) : (
-        <Stack.Screen name="welcome-page" />
+        <Stack.Screen name="welcome-screen" />
       )}
     </Stack>
   );

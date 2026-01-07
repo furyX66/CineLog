@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Text, View } from "react-native";
 
-interface LoginResponse {
+interface ILoginResponse {
   token: string;
   user: { id: number; username: string; email: string };
 }
@@ -22,10 +22,13 @@ export default function Login() {
   const handleLogin = async () => {
     setErrorMessage("");
     try {
-      const response: LoginResponse = await apiPost("/auth/Login", {
-        identifier,
-        password,
-      });
+      const response: ILoginResponse = await apiPost(
+        {
+          identifier,
+          password,
+        },
+        "/auth/Login",
+      );
       console.log("Response: ", response);
       await login(response.token, response.user);
       router.dismissAll();
