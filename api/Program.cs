@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!));
 
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -76,6 +77,38 @@ static async Task<UserMovie> GetOrCreateUserMovie(ApplicationDbContext db, int u
     }
 
     return userMovie;
+}
+
+static async Task<Movie> GetOrCreateMovie(ApplicationDbContext db, AddToListDto dto)
+{
+    var movie = await db.Movies.FirstOrDefaultAsync(m => m.TmdbId == dto.TmdbId);
+    if (movie is null) 
+    {
+        movie = new Movie
+        {
+            TmdbId = dto.TmdbId,
+            Title = dto.Title,
+            OriginalTitle = dto.OriginalTitle,
+            Overview = dto.Overview,
+            PosterPath = dto.PosterPath,
+            BackdropPath = dto.BackdropPath,
+            ReleaseDate = dto.ReleaseDate,
+            VoteAverage = dto.VoteAverage,
+            VoteCount = dto.VoteCount,
+            Popularity = dto.Popularity,
+            Adult = dto.Adult,
+            Runtime = dto.Runtime,
+            Genres = dto.Genres ?? new()
+        };
+        db.Movies.Add(movie);
+        await db.SaveChangesAsync();
+    }
+    else if (movie.Genres.Count == 0 && dto.Genres?.Count > 0)
+    {
+        movie.Genres = dto.Genres;
+        await db.SaveChangesAsync();
+    }
+    return movie;
 }
 
 #endregion
@@ -144,18 +177,20 @@ app.MapPost("/api/auth/login", async (LoginRequestDto requestDto, ApplicationDbC
 
 #region Watchlist
 
-app.MapPost("/api/movies/{movieId}/watchlist",
-        [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
+app.MapPost("/api/movies/watchlist",
+        [Authorize] async (AddToListDto dto, ApplicationDbContext db, HttpContext http) =>
         {
             var userId = GetUserId(http);
-            var movie = await db.Movies.FindAsync(movieId);
-            if (movie is null) return Results.NotFound("Movie not found");
-
-            var userMovie = await GetOrCreateUserMovie(db, userId, movieId);
+            var movie = await GetOrCreateMovie(db, dto);
+            var userMovie = await GetOrCreateUserMovie(db, userId, movie.Id);
             userMovie.InWatchlist = !userMovie.InWatchlist;
 
             await db.SaveChangesAsync();
-            return Results.Ok(new { movieId, inWatchlist = userMovie.InWatchlist });
+            return Results.Ok(new { 
+                movieId = movie.Id, 
+                tmdbId = dto.TmdbId,
+                inWatchlist = userMovie.InWatchlist 
+            });
         })
     .WithName("ToggleWatchlist");
 
@@ -163,20 +198,21 @@ app.MapPost("/api/movies/{movieId}/watchlist",
 
 #region LikeToggle
 
-app.MapPost("/api/movies/{movieId}/like",
-        [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
+app.MapPost("/api/movies/like",
+        [Authorize] async (AddToListDto dto, ApplicationDbContext db, HttpContext http) =>
         {
             var userId = GetUserId(http);
-            var movie = await db.Movies.FindAsync(movieId);
-            if (movie is null) return Results.NotFound("Movie not found");
-
-            var userMovie = await GetOrCreateUserMovie(db, userId, movieId);
-
+            var movie = await GetOrCreateMovie(db, dto);
+            var userMovie = await GetOrCreateUserMovie(db, userId, movie.Id);
             userMovie.IsLiked = !userMovie.IsLiked;
             if (userMovie.IsLiked) userMovie.IsDisliked = false;
 
             await db.SaveChangesAsync();
-            return Results.Ok(new { movieId, isLiked = userMovie.IsLiked });
+            return Results.Ok(new { 
+                movieId = movie.Id, 
+                tmdbId = dto.TmdbId,
+                isLiked = userMovie.IsLiked 
+            });
         })
     .WithName("ToggleLike");
 
@@ -184,20 +220,21 @@ app.MapPost("/api/movies/{movieId}/like",
 
 #region DislikeToggle
 
-app.MapPost("/api/movies/{movieId}/dislike",
-        [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
+app.MapPost("/api/movies/dislike",
+        [Authorize] async (AddToListDto dto, ApplicationDbContext db, HttpContext http) =>
         {
             var userId = GetUserId(http);
-            var movie = await db.Movies.FindAsync(movieId);
-            if (movie is null) return Results.NotFound("Movie not found");
-
-            var userMovie = await GetOrCreateUserMovie(db, userId, movieId);
-
+            var movie = await GetOrCreateMovie(db, dto);
+            var userMovie = await GetOrCreateUserMovie(db, userId, movie.Id);
             userMovie.IsDisliked = !userMovie.IsDisliked;
             if (userMovie.IsDisliked) userMovie.IsLiked = false;
 
             await db.SaveChangesAsync();
-            return Results.Ok(new { movieId, isDisliked = userMovie.IsDisliked });
+            return Results.Ok(new { 
+                movieId = movie.Id, 
+                tmdbId = dto.TmdbId,
+                isDisliked = userMovie.IsDisliked 
+            });
         })
     .WithName("ToggleDislike");
 
@@ -205,18 +242,20 @@ app.MapPost("/api/movies/{movieId}/dislike",
 
 #region Watched
 
-app.MapPost("/api/movies/{movieId}/watched",
-        [Authorize] async (int movieId, ApplicationDbContext db, HttpContext http) =>
+app.MapPost("/api/movies/watched",
+        [Authorize] async (AddToListDto dto, ApplicationDbContext db, HttpContext http) =>
         {
             var userId = GetUserId(http);
-            var movie = await db.Movies.FindAsync(movieId);
-            if (movie is null) return Results.NotFound("Movie not found");
-
-            var userMovie = await GetOrCreateUserMovie(db, userId, movieId);
+            var movie = await GetOrCreateMovie(db, dto);
+            var userMovie = await GetOrCreateUserMovie(db, userId, movie.Id);
             userMovie.IsWatched = !userMovie.IsWatched;
 
             await db.SaveChangesAsync();
-            return Results.Ok(new { movieId, isWatched = userMovie.IsWatched });
+            return Results.Ok(new { 
+                movieId = movie.Id, 
+                tmdbId = dto.TmdbId,
+                isWatched = userMovie.IsWatched 
+            });
         })
     .WithName("ToggleWatched");
 
@@ -235,10 +274,12 @@ app.MapGet("/api/movies/liked",
                 .Select(um => new
                 {
                     um.Movie.Id,
+                    um.Movie.TmdbId,                   
                     um.Movie.Title,
-                    um.Movie.PosterUrl,
-                    um.Movie.Rating,
-                    um.Movie.ReleaseYear,
+                    um.Movie.PosterPath,                
+                    um.Movie.VoteAverage,           
+                    um.Movie.ReleaseDate, 
+                    um.Movie.Genres,
                     um.IsWatched,
                     um.UserRating
                 })
@@ -262,10 +303,14 @@ app.MapGet("/api/movies/disliked",
                 .Select(um => new
                 {
                     um.Movie.Id,
+                    um.Movie.TmdbId,                   
                     um.Movie.Title,
-                    um.Movie.PosterUrl,
-                    um.Movie.Rating,
-                    um.Movie.ReleaseYear
+                    um.Movie.PosterPath,                
+                    um.Movie.VoteAverage,           
+                    um.Movie.ReleaseDate, 
+                    um.Movie.Genres,
+                    um.IsWatched,
+                    um.UserRating
                 })
                 .ToListAsync();
 
@@ -286,13 +331,14 @@ app.MapGet("/api/movies/watched",
                 .Select(um => new
                 {
                     um.Movie.Id,
+                    um.Movie.TmdbId,                   
                     um.Movie.Title,
-                    um.Movie.PosterUrl,
-                    um.Movie.Rating,
-                    um.Movie.ReleaseYear,
-                    um.UserRating,
-                    um.IsLiked,
-                    um.IsDisliked
+                    um.Movie.PosterPath,                
+                    um.Movie.VoteAverage,           
+                    um.Movie.ReleaseDate, 
+                    um.Movie.Genres,
+                    um.IsWatched,
+                    um.UserRating
                 })
                 .ToListAsync();
 
@@ -313,10 +359,14 @@ app.MapGet("/api/movies/watchlist",
             .Select(um => new
             {
                 um.Movie.Id,
+                um.Movie.TmdbId,                   
                 um.Movie.Title,
-                um.Movie.PosterUrl,
-                um.Movie.Rating,
-                um.Movie.ReleaseYear
+                um.Movie.PosterPath,                
+                um.Movie.VoteAverage,           
+                um.Movie.ReleaseDate, 
+                um.Movie.Genres,
+                um.IsWatched,
+                um.UserRating
             })
             .ToListAsync();
 

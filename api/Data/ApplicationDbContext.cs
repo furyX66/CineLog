@@ -1,3 +1,5 @@
+using System.Text.Json;
+using api.Dtos;
 using Microsoft.EntityFrameworkCore;
 
 public class ApplicationDbContext : DbContext
@@ -17,6 +19,15 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(u => u.Username).IsUnique();
             entity.HasIndex(u => u.Email).IsUnique();
         });
+        
+        modelBuilder.Entity<Movie>()
+            .Property(m => m.Genres)
+            .HasColumnType("jsonb") 
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, new JsonSerializerOptions()),
+                v => JsonSerializer.Deserialize<List<GenreDto>>(v, new JsonSerializerOptions()) 
+                     ?? new List<GenreDto>()
+            );
 
         modelBuilder.Entity<UserMovie>()
             .HasKey(um => new { um.UserId, um.MovieId });
