@@ -374,4 +374,42 @@ app.MapGet("/api/movies/watchlist",
     }).WithName("GetWatchlist");
 #endregion
 
+#region GetMovieStatus
+app.MapGet("/api/movies/{tmdbId}/status", [Authorize] async (
+        int tmdbId, 
+        ApplicationDbContext db, 
+        HttpContext http) =>
+    {
+        var userId = GetUserId(http);
+    
+        var userMovie = await db.UserMovies
+            .Where(um => um.UserId == userId && um.Movie.TmdbId == tmdbId)
+            .Include(um => um.Movie)
+            .FirstOrDefaultAsync();
+
+        if (userMovie is null)
+            return Results.Ok(new
+            {
+                isLiked = false,
+                isDisliked = false,
+                inWatchlist = false,
+                isWatched = false,
+                userRating = (int?)null
+            });
+
+        return Results.Ok(new
+        {
+            movieId = userMovie.Movie.Id,
+            tmdbId = userMovie.Movie.TmdbId,
+            title = userMovie.Movie.Title,
+            
+            isLiked = userMovie.IsLiked,
+            isDisliked = userMovie.IsDisliked,
+            inWatchlist = userMovie.InWatchlist,
+            isWatched = userMovie.IsWatched,
+            userRating = userMovie.UserRating
+        });
+    })
+    .WithName("GetMovieStatus");
+#endregion
 app.Run();
