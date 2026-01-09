@@ -105,7 +105,7 @@ export default function Index() {
           ListHeaderComponent={
             <View className="gap-8">
               <StatsGrid
-                count={{ watchLater: 2, liked: 3, disliked: 1, reviewed: 4 }}
+                count={{ watchLater: 2, liked: 3, disliked: 1, viewed: 4 }}
               />
               <Text className="mb-4 font-[DMSansB] text-3xl text-orange-500">
                 All movies

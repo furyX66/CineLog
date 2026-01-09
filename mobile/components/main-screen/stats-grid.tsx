@@ -4,7 +4,7 @@ import { Pressable, Text, View } from "react-native";
 
 interface StatsGridProps {
   count: {
-    reviewed: number;
+    viewed: number;
     watchLater: number;
     liked: number;
     disliked: number;
@@ -40,10 +40,10 @@ export default function StatsGrid({ count }: StatsGridProps) {
       route: "disliked",
     },
     {
-      label: "Reviewed",
-      count: count.reviewed,
+      label: "Viewed",
+      count: count.viewed,
       color: "text-blue-300",
-      route: "reviews",
+      route: "viewed",
     },
   ];
   return (

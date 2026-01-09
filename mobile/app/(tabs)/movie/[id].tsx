@@ -303,7 +303,7 @@ export default function MovieDetails() {
             className={
               liked
                 ? clsx(styles.squareButton, "bg-green-400")
-                : clsx(styles.squareButton, "bg-green-200")
+                : clsx(styles.squareButton, "bg-green-300")
             }
           >
             <ThumbsUp
@@ -318,8 +318,8 @@ export default function MovieDetails() {
             activeOpacity={0.8}
             className={
               disliked
-                ? clsx(styles.squareButton, "bg-red-400")
-                : clsx(styles.squareButton, "bg-red-100")
+                ? clsx(styles.squareButton, "bg-red-200")
+                : clsx(styles.squareButton, "bg-red-200")
             }
           >
             <ThumbsDown

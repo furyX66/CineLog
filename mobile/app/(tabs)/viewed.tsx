@@ -3,7 +3,7 @@ import React from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export default function Reviews() {
+export default function Disliked() {
   const insets = useSafeAreaInsets();
   return (
     <LinearGradient
@@ -14,8 +14,8 @@ export default function Reviews() {
       end={{ x: 1, y: 0 }}
     >
       <View style={{ paddingBottom: insets.top - 12 }} className="items-center">
-        <Text className="h-11 font-[DMSansB] text-4xl text-white">Reviews</Text>
-        <Text className="font-[DMSansM] text-white">2 reviews</Text>
+        <Text className="h-11 font-[DMSansB] text-4xl text-white">Viewed</Text>
+        <Text className="font-[DMSansM] text-white">1 movies disliked</Text>
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}

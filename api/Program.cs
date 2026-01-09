@@ -412,4 +412,19 @@ app.MapGet("/api/movies/{tmdbId}/status", [Authorize] async (
     })
     .WithName("GetMovieStatus");
 #endregion
+
+#region ValidateToken
+
+app.MapGet("/api/auth/validate", (HttpContext http) =>
+    {
+        var userId = GetUserId(http);
+
+        if (userId == 0)
+            return Results.Unauthorized();
+
+        return Results.Ok(new { isValid = true });
+    })
+    .RequireAuthorization()
+    .WithName("ValidateToken");
+#endregion
 app.Run();
