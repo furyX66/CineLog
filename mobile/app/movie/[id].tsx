@@ -1,6 +1,7 @@
 import { IMovieBase } from "@/interfaces/IMovieBase";
-import { apiGet } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 import { tmdbEndpoints } from "@/lib/tmdb";
+import { useAuth } from "@/stores/auth-context";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   ArrowLeft,
@@ -8,6 +9,8 @@ import {
   CalendarDays,
   Clapperboard,
   Star,
+  ThumbsDown,
+  ThumbsUp,
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
@@ -27,13 +30,21 @@ interface IMovie extends IMovieBase {
   }[];
 }
 
+type Action = "like" | "dislike" | "watchlist" | "watched";
+
 export default function MovieDetails() {
+  const { token } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const movieId = parseInt(id || "0", 10);
   const TMDBapiKey = process.env.EXPO_PUBLIC_TMDB_API_TOKEN;
   const [movie, setMovie] = useState<IMovie>();
   const [loading, setLoading] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
+
+  const handleUserAction = async (movie: IMovie, action: Action) => {
+    const response = await apiPost(movie, `/movies/${action}`, token!);
+    console.log(`${action} response`, response);
+  };
 
   const fetchMovieDetail = async () => {
     try {
@@ -52,6 +63,20 @@ export default function MovieDetails() {
     fetchMovieDetail();
   }, [id]);
 
+  if (!token) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#0a0e27",
+        }}
+      >
+        <Text style={{ color: "#fff", fontSize: 16 }}>Token has expired</Text>
+      </View>
+    );
+  }
   if (loading) return <ActivityIndicator size="large" color="#F5AF19" />;
   if (!movie) {
     return (
@@ -146,14 +171,22 @@ export default function MovieDetails() {
         </View>
 
         <View className="mb-6 flex-row gap-3">
-          <TouchableOpacity className="h-14 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800">
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => handleUserAction(movie, "watchlist")}
+            className="h-14 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800"
+          >
             <Bookmark color={"white"} />
             <Text className="font-[DMSansB] text-base text-white">
               Plan to watch
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800">
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => handleUserAction(movie, "watched")}
+            className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800"
+          >
             <Clapperboard color={"white"} />
             <Text className="font-[DMSansB] text-base text-white">
               Add to watched
@@ -168,6 +201,23 @@ export default function MovieDetails() {
           <Text className="font-[DMSansR] text-base color-slate-400">
             {movie.overview || "Description unavailable"}
           </Text>
+        </View>
+        <View className="flex-row gap-4">
+          <TouchableOpacity
+            onPress={() => handleUserAction(movie, "like")}
+            activeOpacity={0.8}
+            className="h-14 w-14 items-center justify-center rounded-lg bg-green-200 px-3 py-2"
+          >
+            <ThumbsUp color={"#008236"} size={20} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => handleUserAction(movie, "dislike")}
+            activeOpacity={0.8}
+            className="h-14 w-14 items-center justify-center rounded-lg bg-red-100 px-3 py-2"
+          >
+            <ThumbsDown color={"#ED213A"} size={20} />
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
