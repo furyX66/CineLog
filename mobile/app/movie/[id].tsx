@@ -1,6 +1,7 @@
 import { IMovieBase } from "@/interfaces/IMovieBase";
 import { apiGet, apiPost } from "@/lib/api";
 import { tmdbEndpoints } from "@/lib/tmdb";
+import { clsx } from "clsx";
 import { useAuth } from "@/stores/auth-context";
 import { router, useLocalSearchParams } from "expo-router";
 import {
@@ -30,6 +31,17 @@ interface IMovie extends IMovieBase {
   }[];
 }
 
+interface IMovieStatusResponse {
+  movieId: number;
+  tmdbId: number;
+  title: string;
+  isLiked: boolean;
+  isDisliked: boolean;
+  inWatchlist: boolean;
+  isWatched: boolean;
+  userRating?: number;
+}
+
 type Action = "like" | "dislike" | "watchlist" | "watched";
 
 export default function MovieDetails() {
@@ -39,29 +51,90 @@ export default function MovieDetails() {
   const TMDBapiKey = process.env.EXPO_PUBLIC_TMDB_API_TOKEN;
   const [movie, setMovie] = useState<IMovie>();
   const [loading, setLoading] = useState<boolean>(false);
+  const [inWatchlist, setInWatchlist] = useState<boolean>(false);
+  const [inWatched, setInWatched] = useState<boolean>(false);
+  const [liked, setLiked] = useState<boolean>(false);
+  const [disliked, setDisliked] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
+
+  const styles = {
+    baseButton:
+      "h-14 flex-1 flex-row items-center justify-center gap-2 rounded-xl border",
+    baseText: "font-[DMSansB] text-base",
+    squareButton: "h-14 w-14 items-center justify-center rounded-lg px-3 py-2",
+  };
+
+  const stateHandlers: Record<Action, () => void> = {
+    like: () => {
+      if (liked) setLiked(false);
+      else {
+        setLiked(true);
+        setDisliked(false);
+      }
+    },
+    dislike: () => {
+      if (disliked) {
+        setDisliked(false);
+      } else {
+        setDisliked(true);
+        setLiked(false);
+      }
+    },
+    watchlist: () => setInWatchlist(!inWatchlist),
+    watched: () => setInWatched(!inWatched),
+  };
 
   const handleUserAction = async (movie: IMovie, action: Action) => {
     const response = await apiPost(movie, `/movies/${action}`, token!);
+    stateHandlers[action]();
     console.log(`${action} response`, response);
+    console.log(
+      `Movie: ${movie.title}, States: inWatchlist: ${inWatchlist}, inWatched: ${inWatched}, liked: ${liked}, disliked: ${disliked}`,
+    );
+  };
+
+  const fetchUserMovieStatus = async (movieId: number) => {
+    const status = await apiGet<IMovieStatusResponse>(
+      `/movies/${movieId}/status`,
+      token!,
+    );
+    setInWatchlist(status.inWatchlist);
+    setInWatched(status.isWatched);
+    setLiked(status.isLiked);
+    setDisliked(status.isDisliked);
+    console.log(
+      `Movie: ${status.title}, States: inWatchlist: ${inWatchlist}, inWatched: ${inWatched}, liked: ${liked}, disliked: ${disliked}`,
+    );
+    console.log("Status", status);
   };
 
   const fetchMovieDetail = async () => {
     try {
-      setLoading(true);
       const url = tmdbEndpoints.movieDetails(movieId);
       const data: IMovie = await apiGet<IMovie>(undefined, TMDBapiKey, url);
       setMovie(data);
+      await fetchUserMovieStatus(data.id);
     } catch (error) {
       console.error("Fetch movie details error:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchMovieDetail();
-  }, [id]);
+    const loadAllData = async () => {
+      try {
+        setLoading(true);
+        await fetchMovieDetail();
+      } catch (error) {
+        console.error("Fetch data error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (movieId && movieId > 0 && token) {
+      loadAllData();
+    }
+  }, [movieId, id, token, TMDBapiKey]);
 
   if (!token) {
     return (
@@ -174,23 +247,44 @@ export default function MovieDetails() {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => handleUserAction(movie, "watchlist")}
-            className="h-14 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800"
+            className={
+              inWatchlist
+                ? clsx(styles.baseButton, "border-yellow-500 bg-yellow-500")
+                : clsx(styles.baseButton, "border-slate-700 bg-slate-800")
+            }
           >
-            <Bookmark color={"white"} />
-            <Text className="font-[DMSansB] text-base text-white">
-              Plan to watch
-            </Text>
+            <View className="w-40 flex-row items-center gap-3">
+              <Bookmark
+                color={inWatchlist ? "black" : "white"}
+                fill={inWatchlist ? "black" : "none"}
+              />
+              <Text
+                className={
+                  inWatchlist
+                    ? clsx(styles.baseText, "text-black")
+                    : clsx(styles.baseText, "text-white")
+                }
+              >
+                {inWatchlist ? "Plan to watch" : "In watchlist"}
+              </Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => handleUserAction(movie, "watched")}
-            className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800"
+            className={
+              inWatched
+                ? clsx(styles.baseButton, "border-blue-500 bg-blue-500")
+                : clsx(styles.baseButton, "border-slate-700 bg-slate-800")
+            }
           >
-            <Clapperboard color={"white"} />
-            <Text className="font-[DMSansB] text-base text-white">
-              Add to watched
-            </Text>
+            <View className="w-40 flex-row items-center gap-3">
+              <Clapperboard color={"white"} />
+              <Text className="font-[DMSansB] text-base text-white">
+                {inWatched ? "In Viewed" : "Add to viewed"}
+              </Text>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -206,17 +300,33 @@ export default function MovieDetails() {
           <TouchableOpacity
             onPress={() => handleUserAction(movie, "like")}
             activeOpacity={0.8}
-            className="h-14 w-14 items-center justify-center rounded-lg bg-green-200 px-3 py-2"
+            className={
+              liked
+                ? clsx(styles.squareButton, "bg-green-400")
+                : clsx(styles.squareButton, "bg-green-200")
+            }
           >
-            <ThumbsUp color={"#008236"} size={20} />
+            <ThumbsUp
+              fill={liked ? "#008236" : "none"}
+              color={"#008236"}
+              size={20}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => handleUserAction(movie, "dislike")}
             activeOpacity={0.8}
-            className="h-14 w-14 items-center justify-center rounded-lg bg-red-100 px-3 py-2"
+            className={
+              disliked
+                ? clsx(styles.squareButton, "bg-red-400")
+                : clsx(styles.squareButton, "bg-red-100")
+            }
           >
-            <ThumbsDown color={"#ED213A"} size={20} />
+            <ThumbsDown
+              fill={disliked ? "#ED213A" : "none"}
+              color={"#ED213A"}
+              size={20}
+            />
           </TouchableOpacity>
         </View>
       </View>
