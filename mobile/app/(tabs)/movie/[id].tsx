@@ -23,12 +23,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { IGenre } from "@/interfaces/IGenre";
 
 interface IMovie extends IMovieBase {
-  genres: {
-    id: number;
-    name: string;
-  }[];
+  genres: IGenre[];
 }
 
 interface IMovieStatusResponse {

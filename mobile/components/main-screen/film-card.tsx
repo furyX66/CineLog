@@ -1,3 +1,4 @@
+import { IGenre } from "@/interfaces/IGenre";
 import { IMovieBase } from "@/interfaces/IMovieBase";
 import { getGenreNames } from "@/lib/tmdb";
 import { Href, router } from "expo-router";
@@ -10,11 +11,35 @@ interface IFilmCardProps {
   href?: string;
 }
 
-interface IMovie extends IMovieBase {
+interface ITmdbMovie extends IMovieBase {
+  type: "tmdb";
   genre_ids: number[];
+  genres?: never;
 }
 
+interface IBackendMovie extends IMovieBase {
+  type: "backend";
+  genres: IGenre[];
+  genre_ids?: never;
+}
+
+type IMovie = ITmdbMovie | IBackendMovie;
+
 export default function FilmCard({ movie, href }: IFilmCardProps) {
+  const getGenresDisplay = (movie: IMovie): string => {
+    if (movie.type === "tmdb") {
+      return getGenreNames(movie.genre_ids);
+    }
+    if (movie.type === "backend") {
+      if (!movie.genres || movie.genres.length === 0) {
+        return "No genres";
+      }
+      return movie.genres.map((g) => g.name).join(", ");
+    }
+
+    return "";
+  };
+
   const handleNavigation = () => {
     router.navigate(href as Href);
   };
@@ -35,7 +60,7 @@ export default function FilmCard({ movie, href }: IFilmCardProps) {
         <View className="flex-1">
           <Text className="font-[DMSansB] text-lg">{movie.title}</Text>
           <Text className="font-[DMSansL] text-sm text-black">
-            {getGenreNames(movie.genre_ids)}
+            {getGenresDisplay(movie)}
           </Text>
           <Text className="font-[DMSansL] text-sm text-gray-500">
             {movie.release_date}

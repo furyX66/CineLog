@@ -55,11 +55,7 @@ export default function Index() {
     try {
       setLoading(true);
       const url = tmdbEndpoints.discoverMovies(pageNum, "popularity.desc");
-      const data: ITMDBResponse = await apiGet<ITMDBResponse>(
-        undefined,
-        TMDBapiKey,
-        url,
-      );
+      const data = await apiGet<ITMDBResponse>(undefined, TMDBapiKey, url);
 
       if (pageNum === 1) {
         setMovies(data.results);
@@ -83,6 +79,7 @@ export default function Index() {
 
   useEffect(() => {
     fetchMovies(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogout = async () => {
@@ -137,16 +134,14 @@ export default function Index() {
             />
           }
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 12,
-            paddingTop: 20,
-            gap: 8,
-            paddingBottom: 32,
-          }}
+          contentContainerClassName="px-3 gap-2 pt-5 pb-8"
           data={movies}
           keyExtractor={(item, index) => `${item.id}-${index}`}
           renderItem={({ item }) => (
-            <FilmCard movie={item} href={`/movie/${item.id}`} />
+            <FilmCard
+              movie={{ type: "tmdb", ...item }}
+              href={`/movie/${item.id}`}
+            />
           )}
           ListHeaderComponent={
             <View className="gap-8">

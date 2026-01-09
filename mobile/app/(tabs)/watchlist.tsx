@@ -1,10 +1,54 @@
+import FilmCard from "@/components/main-screen/film-card";
+import {
+  IUserMovie,
+  IUserMovieResponse,
+} from "@/interfaces/IUserMovieResponse";
+import { apiGet } from "@/lib/api";
+import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
-import { ScrollView, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { FlatList, RefreshControl, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Watchlist() {
   const insets = useSafeAreaInsets();
+  const { token } = useAuth();
+  const [movies, setMovies] = useState<IUserMovie[]>([]);
+  const [moviesCount, setMovieCount] = useState(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const fetchMovies = async () => {
+    try {
+      setLoading(true);
+      const data = await apiGet<IUserMovieResponse>(
+        "/movies/watchlist",
+        token!,
+      );
+      setMovies(data.movies);
+      setMovieCount(data.count);
+    } catch (error) {
+      console.error("Fetch movies error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMovies();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchMovies();
+    } catch (error) {
+      console.error("Refresh error:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
   return (
     <LinearGradient
       style={{ paddingTop: insets.top + 12 }}
@@ -17,12 +61,43 @@ export default function Watchlist() {
         <Text className="h-11 font-[DMSansB] text-4xl text-white">
           Watchlist
         </Text>
-        <Text className="font-[DMSansM] text-white">3 movies saved</Text>
+        <Text className="font-[DMSansM] text-white">
+          {moviesCount} {moviesCount > 1 ? "movies" : "movie"} in your watchlist
+        </Text>
       </View>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        className="w-full rounded-t-2xl bg-white pt-4"
-      ></ScrollView>
+      <View className="h-[80%] w-full rounded-t-2xl bg-white pt-4">
+        <FlatList
+          ListEmptyComponent={
+            <Text className="text-center font-[DMSansM] text-2xl text-blue-400">
+              Your watchlist is empty
+            </Text>
+          }
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          initialNumToRender={10}
+          onEndReachedThreshold={0.5}
+          scrollEnabled={true}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#F5AF19"
+              title="Pull to refresh"
+              titleColor="#F5AF19"
+            />
+          }
+          contentContainerClassName="px-3 gap-2  pb-8"
+          showsVerticalScrollIndicator={false}
+          data={movies}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          renderItem={({ item }) => (
+            <FilmCard
+              movie={{ type: "backend", ...item }}
+              href={`/movie/${item.tmdbId}`}
+            />
+          )}
+        />
+      </View>
     </LinearGradient>
   );
 }
