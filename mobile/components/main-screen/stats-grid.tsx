@@ -1,14 +1,10 @@
+import { ICounts } from "@/app/(tabs)";
 import { Href, useRouter } from "expo-router";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 
 interface StatsGridProps {
-  count: {
-    viewed: number;
-    watchLater: number;
-    liked: number;
-    disliked: number;
-  };
+  count: ICounts;
 }
 
 interface Stat {
@@ -23,7 +19,7 @@ export default function StatsGrid({ count }: StatsGridProps) {
   const stats: Stat[] = [
     {
       label: "Watch List",
-      count: count.watchLater,
+      count: count.watchlist,
       color: "text-purple-700",
       route: "watchlist",
     },
@@ -41,11 +37,12 @@ export default function StatsGrid({ count }: StatsGridProps) {
     },
     {
       label: "Viewed",
-      count: count.viewed,
+      count: count.watched,
       color: "text-blue-300",
       route: "viewed",
     },
   ];
+
   return (
     <View className="w-full flex-row flex-wrap justify-center gap-3">
       {stats?.map((stat, i) => (

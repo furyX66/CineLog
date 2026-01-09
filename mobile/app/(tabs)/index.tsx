@@ -6,7 +6,13 @@ import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StatsGrid from "../../components/main-screen/stats-grid";
 import { IMovieBase } from "../../interfaces/IMovieBase";
@@ -18,16 +24,30 @@ interface ITMDBResponse {
   total_results: number;
 }
 
+export interface ICounts {
+  liked: number;
+  disliked: number;
+  watched: number;
+  watchlist: number;
+}
+
 interface IMovie extends IMovieBase {
   genre_ids: number[];
 }
 
 export default function Index() {
-  const { logout } = useAuth();
+  const { token, logout } = useAuth();
   const [movies, setMovies] = useState<IMovie[]>([]);
   const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [totalPages, setTotalPages] = useState<number>(0);
+  const [moviesCounts, setMoviesCounts] = useState<ICounts>({
+    watchlist: 0,
+    liked: 0,
+    disliked: 0,
+    watched: 0,
+  });
   const TMDBapiKey = process.env.EXPO_PUBLIC_TMDB_API_TOKEN;
   const insets = useSafeAreaInsets();
 
@@ -46,6 +66,7 @@ export default function Index() {
       } else {
         setMovies((prev) => [...prev, ...data.results]);
       }
+      fetchMoviesCounts();
       setTotalPages(data.total_pages);
       setPage(pageNum);
     } catch (error) {
@@ -53,6 +74,11 @@ export default function Index() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchMoviesCounts = async () => {
+    const response = await apiGet<ICounts>("/movies/counts", token!);
+    setMoviesCounts(response);
   };
 
   useEffect(() => {
@@ -67,6 +93,17 @@ export default function Index() {
   const handleLoadMore = () => {
     if (!loading && page < totalPages) {
       fetchMovies(page + 1);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchMovies(1);
+    } catch (error) {
+      console.error("Refresh error:", error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -90,6 +127,15 @@ export default function Index() {
       </View>
       <View className="w-full flex-1 rounded-t-2xl bg-white">
         <FlatList
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#F5AF19"
+              title="Pull to refresh"
+              titleColor="#F5AF19"
+            />
+          }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 12,
@@ -104,9 +150,7 @@ export default function Index() {
           )}
           ListHeaderComponent={
             <View className="gap-8">
-              <StatsGrid
-                count={{ watchLater: 2, liked: 3, disliked: 1, viewed: 4 }}
-              />
+              <StatsGrid count={moviesCounts} />
               <Text className="mb-4 font-[DMSansB] text-3xl text-orange-500">
                 All movies
               </Text>

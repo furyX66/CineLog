@@ -261,6 +261,69 @@ app.MapPost("/api/movies/watched",
 
 #endregion
 
+#region GetWatchlist
+app.MapGet("/api/movies/watchlist",
+    [Authorize] async (ApplicationDbContext db, HttpContext http) =>
+    {
+        var userId = GetUserId(http);
+
+        var watchlist = await db.UserMovies
+            .Where(um => um.UserId == userId && um.InWatchlist)
+            .Include(um => um.Movie)
+            .Select(um => new
+            {
+                um.Movie.Id,
+                um.Movie.TmdbId,                   
+                um.Movie.Title,
+                um.Movie.PosterPath,                
+                um.Movie.VoteAverage,           
+                um.Movie.ReleaseDate, 
+                um.Movie.Genres,
+                um.IsWatched,
+                um.UserRating
+            })
+            .ToListAsync();
+
+        return Results.Ok(new
+        {
+            count = watchlist.Count,
+            movies = watchlist
+        });
+    }).WithName("GetWatchlist");
+#endregion
+
+#region GetWatched
+app.MapGet("/api/movies/watched",
+        [Authorize] async (ApplicationDbContext db, HttpContext http) =>
+        {
+            var userId = GetUserId(http);
+
+            var watchedMovies = await db.UserMovies
+                .Where(um => um.UserId == userId && um.IsWatched)
+                .Include(um => um.Movie)
+                .Select(um => new
+                {
+                    um.Movie.Id,
+                    um.Movie.TmdbId,                   
+                    um.Movie.Title,
+                    um.Movie.PosterPath,                
+                    um.Movie.VoteAverage,           
+                    um.Movie.ReleaseDate, 
+                    um.Movie.Genres,
+                    um.IsWatched,
+                    um.UserRating
+                })
+                .ToListAsync();
+
+            return Results.Ok(new
+            {
+                count = watchedMovies.Count,
+                movies = watchedMovies
+            });
+        })
+    .WithName("GetWatchedMovies");
+#endregion
+
 #region GetLiked
 
 app.MapGet("/api/movies/liked",
@@ -285,7 +348,11 @@ app.MapGet("/api/movies/liked",
                 })
                 .ToListAsync();
 
-            return Results.Ok(likedMovies);
+            return Results.Ok(new
+            {
+                count = likedMovies.Count,
+                movies = likedMovies
+            });
         })
     .WithName("GetLikedMovies");
 
@@ -314,64 +381,49 @@ app.MapGet("/api/movies/disliked",
                 })
                 .ToListAsync();
 
-            return Results.Ok(dislikedMovies);
+            return Results.Ok(new
+            {
+                count = dislikedMovies.Count,
+                movies = dislikedMovies
+            });
         })
     .WithName("GetDislikedMovies");
 #endregion
 
-#region GetWatchedMovies
-app.MapGet("/api/movies/watched",
+#region GetMoviesCounts
+
+app.MapGet("/api/movies/counts",
         [Authorize] async (ApplicationDbContext db, HttpContext http) =>
         {
             var userId = GetUserId(http);
 
-            var watchedMovies = await db.UserMovies
-                .Where(um => um.UserId == userId && um.IsWatched)
-                .Include(um => um.Movie)
-                .Select(um => new
+            var counts = await db.UserMovies
+                .Where(um => um.UserId == userId)
+                .GroupBy(um => um.UserId)
+                .Select(g => new
                 {
-                    um.Movie.Id,
-                    um.Movie.TmdbId,                   
-                    um.Movie.Title,
-                    um.Movie.PosterPath,                
-                    um.Movie.VoteAverage,           
-                    um.Movie.ReleaseDate, 
-                    um.Movie.Genres,
-                    um.IsWatched,
-                    um.UserRating
+                    liked = g.Count(um => um.IsLiked),
+                    disliked = g.Count(um => um.IsDisliked),
+                    watched = g.Count(um => um.IsWatched),
+                    watchlist = g.Count(um => um.InWatchlist)
                 })
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            return Results.Ok(watchedMovies);
-        })
-    .WithName("GetWatchedMovies");
-#endregion
-
-#region GetWatchlist
-app.MapGet("/api/movies/watchlist",
-    [Authorize] async (ApplicationDbContext db, HttpContext http) =>
-    {
-        var userId = GetUserId(http);
-
-        var watchlist = await db.UserMovies
-            .Where(um => um.UserId == userId && um.InWatchlist)
-            .Include(um => um.Movie)
-            .Select(um => new
+            if (counts is null)
             {
-                um.Movie.Id,
-                um.Movie.TmdbId,                   
-                um.Movie.Title,
-                um.Movie.PosterPath,                
-                um.Movie.VoteAverage,           
-                um.Movie.ReleaseDate, 
-                um.Movie.Genres,
-                um.IsWatched,
-                um.UserRating
-            })
-            .ToListAsync();
+                return Results.Ok(new
+                {
+                    liked = 0,
+                    disliked = 0,
+                    watched = 0,
+                    watchlist = 0
+                });
+            }
 
-        return Results.Ok(watchlist);
-    }).WithName("GetWatchlist");
+            return Results.Ok(counts);
+        })
+    .WithName("GetMoviesCounts");
+
 #endregion
 
 #region GetMovieStatus

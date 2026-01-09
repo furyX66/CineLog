@@ -171,6 +171,7 @@ export default function MovieDetails() {
   return (
     <ScrollView
       className="flex-1 bg-slate-900"
+      contentContainerClassName="pb-6"
       showsVerticalScrollIndicator={false}
     >
       <View className="relative h-72">
