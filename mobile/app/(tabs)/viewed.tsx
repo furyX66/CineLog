@@ -1,18 +1,18 @@
-import FilmCard from "@/components/main-screen/film-card";
-import {
-  IUserMovie,
-  IUserMovieResponse,
-} from "@/interfaces/IUserMovieResponse";
 import { apiGet } from "@/lib/api";
 import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  IUserMovie,
+  IUserMovieResponse,
+} from "../../interfaces/IUserMovieResponse";
+import FilmCard from "@/components/main-screen/film-card";
 
-export default function Watchlist() {
-  const insets = useSafeAreaInsets();
+export default function Disliked() {
   const { token } = useAuth();
+  const insets = useSafeAreaInsets();
   const [movies, setMovies] = useState<IUserMovie[]>([]);
   const [moviesCount, setMovieCount] = useState(0);
   const [loading, setLoading] = useState<boolean>(false);
@@ -21,10 +21,7 @@ export default function Watchlist() {
   const fetchMovies = async () => {
     try {
       setLoading(true);
-      const data = await apiGet<IUserMovieResponse>(
-        "/movies/watchlist",
-        token!,
-      );
+      const data = await apiGet<IUserMovieResponse>("/movies/watched", token!);
       setMovies(data.movies);
       setMovieCount(data.count);
     } catch (error) {
@@ -49,27 +46,26 @@ export default function Watchlist() {
       setRefreshing(false);
     }
   };
+
   return (
     <LinearGradient
       style={{ paddingTop: insets.top + 12 }}
       className="flex-1 items-center justify-end"
-      colors={["#8E2DE2", "#4A00E0"]}
+      colors={["#2193B0", "#6DD5ED"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
     >
       <View style={{ paddingBottom: insets.top - 12 }} className="items-center">
-        <Text className="h-11 font-[DMSansB] text-4xl text-white">
-          Watchlist
-        </Text>
+        <Text className="h-11 font-[DMSansB] text-4xl text-white">Viewed</Text>
         <Text className="font-[DMSansM] text-white">
-          {moviesCount} {moviesCount > 1 ? "movies" : "movie"} in your watchlist
+          {moviesCount} {moviesCount > 1 ? "movies" : "movie"} viewed
         </Text>
       </View>
       <View className="h-[80%] w-full rounded-t-2xl bg-white pt-4">
         <FlatList
           ListEmptyComponent={
             <Text className="text-center font-[DMSansM] text-2xl text-blue-400">
-              Your watchlist is empty
+              Your viewed list is empty
             </Text>
           }
           maxToRenderPerBatch={10}

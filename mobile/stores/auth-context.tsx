@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import * as SecureStore from "expo-secure-store";
+import { apiGet } from "@/lib/api";
 
 interface User {
   id: number;
@@ -19,6 +20,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (token: string, user: User) => Promise<void>;
   logout: () => Promise<void>;
+  validateToken: () => Promise<boolean>;
   loading: boolean;
 }
 
@@ -51,6 +53,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const validateToken = async (): Promise<boolean> => {
+    if (!token) return false;
+
+    try {
+      const response = await apiGet<{ isValid: boolean }>(
+        "/auth/validate",
+        token,
+      );
+      return response.isValid;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.log("ERROR", errorMessage);
+
+      if (errorMessage.includes("401") || errorMessage.includes("403")) {
+        await logout();
+        return false;
+      }
+
+      return true;
+    }
+  };
+
   const login = async (newToken: string, newUser: User) => {
     setToken(newToken);
     setUser(newUser);
@@ -73,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     loading,
+    validateToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,10 +1,10 @@
 import { Tabs } from "expo-router";
 import {
   Bookmark,
+  Clapperboard,
   Heart,
   HeartOff,
   House,
-  MessageSquare,
 } from "lucide-react-native";
 import React from "react";
 
@@ -26,7 +26,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="watchlist"
         options={{
-          title: "WatchList",
+          title: "Watchlist",
           tabBarIcon: ({ color }) => <Bookmark color={color} />,
         }}
       />
@@ -45,10 +45,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="reviews"
+        name="viewed"
         options={{
-          title: "Reviews",
-          tabBarIcon: ({ color }) => <MessageSquare color={color} />,
+          title: "Viewed",
+          tabBarIcon: ({ color }) => <Clapperboard color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="movie/[id]"
+        options={{
+          href: null,
         }}
       />
     </Tabs>
