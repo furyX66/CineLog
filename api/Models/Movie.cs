@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using api.Dtos;
+using api.Models;
 
 public class Movie
 {
@@ -10,14 +11,13 @@ public class Movie
     public string? Overview { get; set; }
     public string? PosterPath { get; set; }
     public string? BackdropPath { get; set; }
-    public string? ReleaseDate { get; set; }      
+    public string? ReleaseDate { get; set; } 
     public decimal VoteAverage { get; set; }
     public int VoteCount { get; set; }
     public decimal Popularity { get; set; }
     public bool Adult { get; set; }
     public int? Runtime { get; set; } 
-    [JsonPropertyName("genres")]
-    public List<GenreDto> Genres { get; set; } = new();
+    public List<MovieGenre> MovieGenres { get; set; } = new();
     public ICollection<UserMovie> UserMovies { get; set; } = new List<UserMovie>();
 }
 

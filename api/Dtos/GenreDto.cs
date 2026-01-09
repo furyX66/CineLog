@@ -1,3 +1,12 @@
-﻿namespace api.Dtos;
+﻿using System.Text.Json.Serialization;
 
-public record GenreDto(int Id, string Name);
+namespace api.Dtos;
+
+public class GenreRequestDto
+{
+    [JsonPropertyName("id")]  
+    public int Id { get; set; }
+    
+    [JsonPropertyName("name")] 
+    public string Name { get; set; } = string.Empty;
+}

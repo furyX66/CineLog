@@ -33,5 +33,5 @@ public record AddToListDto(
     bool Adult = false,
     int? Runtime = null,
 
-    List<GenreDto>? Genres = null
+    List<GenreRequestDto>? Genres = null
 );
