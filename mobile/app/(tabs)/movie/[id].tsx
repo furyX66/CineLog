@@ -12,6 +12,7 @@ import {
   Star,
   ThumbsDown,
   ThumbsUp,
+  Share as ShareIcon,
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
@@ -24,6 +25,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { IGenre } from "@/interfaces/IGenre";
+import { Share } from "react-native";
 
 interface IMovie extends IMovieBase {
   genres: IGenre[];
@@ -60,6 +62,21 @@ export default function MovieDetails() {
       "h-14 flex-1 flex-row items-center justify-center gap-2 rounded-xl border",
     baseText: "font-[DMSansB] text-base",
     squareButton: "h-14 w-14 items-center justify-center rounded-lg px-3 py-2",
+  };
+
+  const handleShareMovie = async () => {
+    if (!movie) return;
+    const message = `🍿 ${movie.title}\n⭐ ${movie.vote_average.toFixed(1)}\n📅 ${movie.release_date?.slice(0, 4)}\n\nWatch on: https://www.themoviedb.org/movie/${movie.id}`;
+
+    try {
+      await Share.share({
+        message: message,
+        title: movie.title,
+        url: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+      });
+    } catch (error) {
+      console.error("Share error:", error);
+    }
   };
 
   const stateHandlers: Record<Action, () => void> = {
@@ -303,7 +320,7 @@ export default function MovieDetails() {
             className={
               liked
                 ? clsx(styles.squareButton, "bg-green-400")
-                : clsx(styles.squareButton, "bg-green-300")
+                : clsx(styles.squareButton, "bg-green-200")
             }
           >
             <ThumbsUp
@@ -318,7 +335,7 @@ export default function MovieDetails() {
             activeOpacity={0.8}
             className={
               disliked
-                ? clsx(styles.squareButton, "bg-red-200")
+                ? clsx(styles.squareButton, "bg-red-400")
                 : clsx(styles.squareButton, "bg-red-200")
             }
           >
@@ -327,6 +344,13 @@ export default function MovieDetails() {
               color={"#ED213A"}
               size={20}
             />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleShareMovie}
+            activeOpacity={0.8}
+            className="h-14 w-14 flex-1 items-center justify-center rounded-lg bg-blue-500"
+          >
+            <ShareIcon color="white" size={20} />
           </TouchableOpacity>
         </View>
       </View>
