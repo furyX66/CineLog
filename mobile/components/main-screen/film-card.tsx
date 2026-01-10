@@ -62,7 +62,7 @@ export default function FilmCard({ movie, href }: IFilmCardProps) {
           <Text className="font-[DMSansL] text-sm text-black">
             {getGenresDisplay(movie)}
           </Text>
-          <Text className="font-[DMSansL] text-sm text-gray-500">
+          <Text className="mt-2 font-[DMSansL] text-sm text-gray-500">
             {movie.release_date}
           </Text>
 

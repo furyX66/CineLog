@@ -6,8 +6,15 @@ import {
 import { apiGet } from "@/lib/api";
 import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useEffect, useState } from "react";
-import { FlatList, RefreshControl, Text, View } from "react-native";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Disliked() {
@@ -31,10 +38,12 @@ export default function Disliked() {
     }
   };
 
-  useEffect(() => {
-    fetchMovies();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchMovies();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -46,6 +55,19 @@ export default function Disliked() {
       setRefreshing(false);
     }
   };
+  if (loading) {
+    return (
+      <LinearGradient
+        className="flex-1 items-center justify-center"
+        colors={["#ED213A", "#93291E"]}
+      >
+        <ActivityIndicator size="large" color="#fff" />
+        <Text className="mt-4 font-[DMSansM] text-xl text-white">
+          Loading disliked movies...
+        </Text>
+      </LinearGradient>
+    );
+  }
   return (
     <LinearGradient
       style={{ paddingTop: insets.top + 12 }}
