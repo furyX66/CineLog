@@ -48,7 +48,7 @@ const styles = {
   baseButton:
     "h-14 flex-1 flex-row items-center justify-center gap-2 rounded-xl border",
   baseText: "font-[DMSansB] text-base",
-  squareButton: "h-14 w-14 items-center justify-center rounded-lg px-3 py-2",
+  squareButton: "h-14 w-14 items-center justify-center rounded-xl px-3 py-2",
 };
 
 export default function MovieDetails() {
@@ -385,7 +385,7 @@ export default function MovieDetails() {
           <TouchableOpacity
             onPress={handleShareMovie}
             activeOpacity={0.8}
-            className="h-14 w-14 flex-1 items-center justify-center rounded-lg bg-blue-500"
+            className={clsx(styles.baseButton, "border-blue-500 bg-blue-500")}
           >
             <ShareIcon color="white" size={20} />
           </TouchableOpacity>
