@@ -16,7 +16,7 @@ function RootLayoutContent() {
 
   useEffect(() => {
     validateToken();
-  }, [token, logout]);
+  }, [token, logout, validateToken]);
 
   if (!fontsLoaded || loading) {
     return null;

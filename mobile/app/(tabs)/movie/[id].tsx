@@ -132,6 +132,7 @@ export default function MovieDetails() {
     if (movieId && movieId > 0 && token) {
       loadAllData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [movieId, id, token, TMDBapiKey]);
 
   if (!token) {
@@ -264,7 +265,7 @@ export default function MovieDetails() {
                     : clsx(styles.baseText, "text-white")
                 }
               >
-                {inWatchlist ? "Plan to watch" : "In watchlist"}
+                {inWatchlist ? "In watchlist" : "Plan to watch"}
               </Text>
             </View>
           </TouchableOpacity>
