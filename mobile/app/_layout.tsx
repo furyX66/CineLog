@@ -2,9 +2,10 @@ import { AuthProvider, useAuth } from "@/stores/auth-context";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import "../global.css";
+import { useEffect } from "react";
 
 function RootLayoutContent() {
-  const { loading, isAuthenticated } = useAuth();
+  const { loading, isAuthenticated, validateToken, token, logout } = useAuth();
   const [fontsLoaded] = useFonts({
     DMSansL: require("@/assets/fonts/DMSans-ExtraLight.ttf"),
     DMSansR: require("@/assets/fonts/DMSans-Regular.ttf"),
@@ -12,6 +13,10 @@ function RootLayoutContent() {
     DMSansSB: require("@/assets/fonts/DMSans-SemiBold.ttf"),
     DMSansB: require("@/assets/fonts/DMSans-Bold.ttf"),
   });
+
+  useEffect(() => {
+    validateToken();
+  }, [token, logout]);
 
   if (!fontsLoaded || loading) {
     return null;

@@ -1,13 +1,23 @@
+using System.Text.Json.Serialization;
+using api.Dtos;
+using api.Models;
+
 public class Movie
 {
     public int Id { get; set; }
+    public int TmdbId { get; set; }
     public string Title { get; set; } = string.Empty;
-    public string Genre { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public int ReleaseYear { get; set; }
-    public decimal Rating { get; set; }
-    public string? PosterUrl { get; set; } 
-    
+    public string? OriginalTitle { get; set; }
+    public string? Overview { get; set; }
+    public string? PosterPath { get; set; }
+    public string? BackdropPath { get; set; }
+    public string? ReleaseDate { get; set; } 
+    public decimal VoteAverage { get; set; }
+    public int VoteCount { get; set; }
+    public decimal Popularity { get; set; }
+    public bool Adult { get; set; }
+    public int? Runtime { get; set; } 
+    public List<MovieGenre> MovieGenres { get; set; } = new();
     public ICollection<UserMovie> UserMovies { get; set; } = new List<UserMovie>();
 }
 

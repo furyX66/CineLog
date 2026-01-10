@@ -4,9 +4,14 @@ import { apiGet } from "@/lib/api";
 import { tmdbEndpoints } from "@/lib/tmdb";
 import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StatsGrid from "../../components/main-screen/stats-grid";
 import { IMovieBase } from "../../interfaces/IMovieBase";
@@ -18,16 +23,30 @@ interface ITMDBResponse {
   total_results: number;
 }
 
+export interface ICounts {
+  liked: number;
+  disliked: number;
+  watched: number;
+  watchlist: number;
+}
+
 interface IMovie extends IMovieBase {
   genre_ids: number[];
 }
 
 export default function Index() {
-  const { logout } = useAuth();
+  const { token, logout } = useAuth();
   const [movies, setMovies] = useState<IMovie[]>([]);
   const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [totalPages, setTotalPages] = useState<number>(0);
+  const [moviesCounts, setMoviesCounts] = useState<ICounts>({
+    watchlist: 0,
+    liked: 0,
+    disliked: 0,
+    watched: 0,
+  });
   const TMDBapiKey = process.env.EXPO_PUBLIC_TMDB_API_TOKEN;
   const insets = useSafeAreaInsets();
 
@@ -35,17 +54,14 @@ export default function Index() {
     try {
       setLoading(true);
       const url = tmdbEndpoints.discoverMovies(pageNum, "popularity.desc");
-      const data: ITMDBResponse = await apiGet<ITMDBResponse>(
-        undefined,
-        TMDBapiKey,
-        url,
-      );
+      const data = await apiGet<ITMDBResponse>(undefined, TMDBapiKey, url);
 
       if (pageNum === 1) {
         setMovies(data.results);
       } else {
         setMovies((prev) => [...prev, ...data.results]);
       }
+      fetchMoviesCounts();
       setTotalPages(data.total_pages);
       setPage(pageNum);
     } catch (error) {
@@ -55,18 +71,34 @@ export default function Index() {
     }
   };
 
+  const fetchMoviesCounts = async () => {
+    const response = await apiGet<ICounts>("/movies/counts", token!);
+    setMoviesCounts(response);
+  };
+
   useEffect(() => {
     fetchMovies(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogout = async () => {
     await logout();
-    router.replace("/welcome-screen");
   };
 
   const handleLoadMore = () => {
     if (!loading && page < totalPages) {
       fetchMovies(page + 1);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchMovies(1);
+    } catch (error) {
+      console.error("Refresh error:", error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -90,23 +122,28 @@ export default function Index() {
       </View>
       <View className="w-full flex-1 rounded-t-2xl bg-white">
         <FlatList
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#F5AF19"
+              title="Pull to refresh"
+              titleColor="#F5AF19"
+            />
+          }
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 12,
-            paddingTop: 20,
-            gap: 8,
-            paddingBottom: 32,
-          }}
+          contentContainerClassName="px-3 gap-2 pt-5 pb-8"
           data={movies}
           keyExtractor={(item, index) => `${item.id}-${index}`}
           renderItem={({ item }) => (
-            <FilmCard movie={item} href={`/movie/${item.id}`} />
+            <FilmCard
+              movie={{ type: "tmdb", ...item }}
+              href={`/movie/${item.id}`}
+            />
           )}
           ListHeaderComponent={
             <View className="gap-8">
-              <StatsGrid
-                count={{ watchLater: 2, liked: 3, disliked: 1, reviewed: 4 }}
-              />
+              <StatsGrid count={moviesCounts} />
               <Text className="mb-4 font-[DMSansB] text-3xl text-orange-500">
                 All movies
               </Text>
