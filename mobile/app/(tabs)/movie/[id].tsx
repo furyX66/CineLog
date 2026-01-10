@@ -22,10 +22,10 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Share,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { IGenre } from "@/interfaces/IGenre";
-import { Share } from "react-native";
 
 interface IMovie extends IMovieBase {
   genres: IGenre[];
@@ -44,6 +44,13 @@ interface IMovieStatusResponse {
 
 type Action = "like" | "dislike" | "watchlist" | "watched";
 
+const styles = {
+  baseButton:
+    "h-14 flex-1 flex-row items-center justify-center gap-2 rounded-xl border",
+  baseText: "font-[DMSansB] text-base",
+  squareButton: "h-14 w-14 items-center justify-center rounded-lg px-3 py-2",
+};
+
 export default function MovieDetails() {
   const { token } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -55,14 +62,8 @@ export default function MovieDetails() {
   const [inWatched, setInWatched] = useState<boolean>(false);
   const [liked, setLiked] = useState<boolean>(false);
   const [disliked, setDisliked] = useState<boolean>(false);
+  const [userRating, setUserRating] = useState<number | null>(null);
   const insets = useSafeAreaInsets();
-
-  const styles = {
-    baseButton:
-      "h-14 flex-1 flex-row items-center justify-center gap-2 rounded-xl border",
-    baseText: "font-[DMSansB] text-base",
-    squareButton: "h-14 w-14 items-center justify-center rounded-lg px-3 py-2",
-  };
 
   const handleShareMovie = async () => {
     if (!movie) return;
@@ -102,10 +103,24 @@ export default function MovieDetails() {
   const handleUserAction = async (movie: IMovie, action: Action) => {
     const response = await apiPost(movie, `/movies/${action}`, token!);
     stateHandlers[action]();
-    console.log(`${action} response`, response);
+    console.log(`${action} Response`, response);
     console.log(
       `Movie: ${movie.title}, States: inWatchlist: ${inWatchlist}, inWatched: ${inWatched}, liked: ${liked}, disliked: ${disliked}`,
     );
+  };
+
+  const handleRateMovie = async (movieId: number, rating: number) => {
+    try {
+      const response = await apiPost(
+        { rating: rating },
+        `/movies/${movieId}/rate`,
+        token!,
+      );
+      console.log(response);
+      setUserRating(rating);
+    } catch (error) {
+      console.error("Rate error:", error);
+    }
   };
 
   const fetchUserMovieStatus = async (movieId: number) => {
@@ -117,6 +132,7 @@ export default function MovieDetails() {
     setInWatched(status.isWatched);
     setLiked(status.isLiked);
     setDisliked(status.isDisliked);
+    setUserRating(status.userRating || null);
     console.log(
       `Movie: ${status.title}, States: inWatchlist: ${inWatchlist}, inWatched: ${inWatched}, liked: ${liked}, disliked: ${disliked}`,
     );
@@ -305,15 +321,36 @@ export default function MovieDetails() {
           </TouchableOpacity>
         </View>
 
-        <View className="mb-6">
-          <Text className="mb-2 font-[DMSansB] text-lg color-white">
-            Description
-          </Text>
-          <Text className="font-[DMSansR] text-base color-slate-400">
-            {movie.overview || "Description unavailable"}
-          </Text>
-        </View>
-        <View className="flex-row gap-4">
+        {inWatched ? (
+          <View className="mb-6">
+            <Text className="mb-3 font-[DMSansB] text-lg text-white">
+              Your rating
+            </Text>
+
+            <View className="flex-row justify-between gap-2">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => handleRateMovie(movie.id, star)}
+                  activeOpacity={0.7}
+                >
+                  <Star
+                    size={24}
+                    color={star <= (userRating || 0) ? "#F5AF19" : "#6A7282"}
+                    fill={star <= (userRating || 0) ? "#F5AF19" : "none"}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            {userRating && (
+              <Text className="mt-2 font-[DMSansM] text-sm text-yellow-400">
+                Your rating: {userRating}/10
+              </Text>
+            )}
+          </View>
+        ) : null}
+
+        <View className="mb-6 flex-row gap-4">
           <TouchableOpacity
             onPress={() => handleUserAction(movie, "like")}
             activeOpacity={0.8}
@@ -352,6 +389,15 @@ export default function MovieDetails() {
           >
             <ShareIcon color="white" size={20} />
           </TouchableOpacity>
+        </View>
+
+        <View className="mb-6">
+          <Text className="mb-2 font-[DMSansB] text-lg color-white">
+            Description
+          </Text>
+          <Text className="font-[DMSansR] text-base color-slate-400">
+            {movie.overview || "Description unavailable"}
+          </Text>
         </View>
       </View>
     </ScrollView>
