@@ -1,4 +1,4 @@
-**🇬🇧 [English](./README.md) | 🇵🇱 [Polski](./README.pl.md)**
+**[English](./README.md) | [Polski](./README.pl.md)**
 
 # Cinelog - Movie Tracking App
 
