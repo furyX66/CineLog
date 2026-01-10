@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import * as SecureStore from "expo-secure-store";
 import { apiGet } from "@/lib/api";
+import { router } from "expo-router";
 
 interface User {
   id: number;
@@ -85,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    router.replace("/welcome-screen");
     setToken(null);
     setUser(null);
     await SecureStore.deleteItemAsync("token");

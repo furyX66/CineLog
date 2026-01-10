@@ -4,7 +4,6 @@ import { apiGet } from "@/lib/api";
 import { tmdbEndpoints } from "@/lib/tmdb";
 import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -84,7 +83,6 @@ export default function Index() {
 
   const handleLogout = async () => {
     await logout();
-    router.replace("/welcome-screen");
   };
 
   const handleLoadMore = () => {
