@@ -4,7 +4,7 @@ import { apiGet } from "@/lib/api";
 import { tmdbEndpoints } from "@/lib/tmdb";
 import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StatsGrid from "../../components/main-screen/stats-grid";
 import { IMovieBase } from "../../interfaces/IMovieBase";
+import { useFocusEffect } from "expo-router";
 
 interface ITMDBResponse {
   page: number;
@@ -61,7 +62,6 @@ export default function Index() {
       } else {
         setMovies((prev) => [...prev, ...data.results]);
       }
-      fetchMoviesCounts();
       setTotalPages(data.total_pages);
       setPage(pageNum);
     } catch (error) {
@@ -75,6 +75,13 @@ export default function Index() {
     const response = await apiGet<ICounts>("/movies/counts", token!);
     setMoviesCounts(response);
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchMoviesCounts();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   useEffect(() => {
     fetchMovies(1);
