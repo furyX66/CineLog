@@ -487,6 +487,37 @@ app.MapGet("/api/movies/{tmdbId}/status", [Authorize] async (
 
 #endregion
 
+#region RateMovie
+
+app.MapPost("/api/movies/{tmdbId}/rate",
+        [Authorize] async (int tmdbId, RateMovieDto dto, ApplicationDbContext db, HttpContext http) =>
+        {
+            if (dto.Rating < 1 || dto.Rating > 10)
+                return Results.BadRequest("Rating must be between 1 and 10");
+
+            var userId = GetUserId(http);
+            
+            var movie = await db.Movies
+                .FirstOrDefaultAsync(m => m.TmdbId == tmdbId);
+
+            if (movie is null)
+                return Results.NotFound("Movie not found");
+            
+            var userMovie = await db.UserMovies
+                .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movie.Id);
+
+            if (userMovie is null || !userMovie.IsWatched)
+                return Results.BadRequest("Movie must be marked as watched to rate it");
+            
+            userMovie.UserRating = dto.Rating;
+            await db.SaveChangesAsync();
+
+            return Results.Ok(new { tmdbId, movieId = movie.Id, rating = dto.Rating });
+        })
+    .WithName("RateMovie");
+
+#endregion
+
 #region ValidateToken
 
 app.MapGet("/api/auth/validate", (HttpContext http) =>
