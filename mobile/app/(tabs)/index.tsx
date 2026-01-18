@@ -88,10 +88,6 @@ export default function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleLogout = async () => {
-    await logout();
-  };
-
   const handleLoadMore = () => {
     if (!loading && page < totalPages) {
       fetchMovies(page + 1);
@@ -122,10 +118,6 @@ export default function Index() {
         <Text className="font-[DMSansM] text-white">
           Your personal movie companion
         </Text>
-        {/* Temporary */}
-        <Button className="px-8" onPress={handleLogout}>
-          Logout
-        </Button>
       </View>
       <View className="w-full flex-1 rounded-t-2xl bg-white">
         <FlatList
