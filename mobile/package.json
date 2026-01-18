@@ -10,6 +10,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "jest",
+    "test:ci": "jest --ci --coverage --watchAll=false",
     "build": "eas build --platform android"
   },
   "dependencies": {
@@ -45,7 +46,6 @@
     "tailwindcss": "^3.4.19"
   },
   "devDependencies": {
-    "@testing-library/react-hooks": "^8.0.1",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.1.0",
     "eslint": "^9.25.0",
