@@ -9,7 +9,7 @@ import { Text, View } from "react-native";
 
 interface ILoginResponse {
   token: string;
-  user: { id: number; username: string; email: string };
+  user: { id: number; email: string; username: string };
 }
 
 export default function Login() {
