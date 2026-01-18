@@ -293,6 +293,13 @@ GET /api/movies/watchlist
 Zaktualizowana lista wyświetlana
 ```
 
----
+Zrzuty ekranu aplikacji:
+
+![Ekran logowania](/assets/login-screen.jpg)
+![Ekran główny](/assets/main-screen.jpg)
+![Ekran polubień](/assets/liked-screen.jpg)
+![Ekran profilu](/assets/profile-screen.jpg)
+![Ekran szczegółów filmu](/assets/movie-detail-screen.jpg)
+![Natywna funkcja udostępniania](/assets/native-share-feature.jpg)
 
 **Wersja**: 0.0.1
