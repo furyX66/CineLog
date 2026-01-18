@@ -1,9 +1,9 @@
-import Button from "@/components/button";
 import FilmCard from "@/components/main-screen/film-card";
 import { apiGet } from "@/lib/api";
 import { tmdbEndpoints } from "@/lib/tmdb";
 import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -15,7 +15,6 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StatsGrid from "../../components/main-screen/stats-grid";
 import { IMovieBase } from "../../interfaces/IMovieBase";
-import { useFocusEffect } from "expo-router";
 
 interface ITMDBResponse {
   page: number;
@@ -36,7 +35,7 @@ interface IMovie extends IMovieBase {
 }
 
 export default function Index() {
-  const { token, logout } = useAuth();
+  const { token } = useAuth();
   const [movies, setMovies] = useState<IMovie[]>([]);
   const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
