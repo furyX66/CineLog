@@ -17,7 +17,6 @@
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
-    "@testing-library/jest-native": "^5.4.3",
     "clsx": "^2.1.1",
     "expo": "~54.0.31",
     "expo-constants": "~18.0.13",
@@ -47,7 +46,6 @@
   },
   "devDependencies": {
     "@testing-library/react-hooks": "^8.0.1",
-    "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.1.0",
     "eslint": "^9.25.0",
@@ -66,9 +64,6 @@
     "testMatch": [
       "**/*.test.ts",
       "**/*.test.tsx"
-    ],
-    "setupFilesAfterEnv": [
-      "@testing-library/jest-native/extend-expect"
     ]
   },
   "private": true
