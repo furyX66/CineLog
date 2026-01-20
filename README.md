@@ -298,4 +298,8 @@ Applications screenshots:
 ![Movie detail screen](/assets/movie-detail-screen.jpg)
 ![Native share feature](/assets/native-share-feature.jpg)
 
+Division of labor:
+Artem Pushkarov 144819 - Frontend, backend, documentation
+Stanislav Bazyliak 143067 - Testing, CI, Figma
+
 **Version**: 0.0.1
