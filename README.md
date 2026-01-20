@@ -130,6 +130,9 @@ cd api
 # Install dependencies
 dotnet restore
 
+# Install Entity Framework Core
+dotnet tool install --global dotnet-ef
+
 # Configure database connection
 # Update appsettings.json with PostgreSQL connection string
 
