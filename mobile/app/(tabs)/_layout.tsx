@@ -5,6 +5,7 @@ import {
   Heart,
   HeartOff,
   House,
+  User,
 } from "lucide-react-native";
 import React from "react";
 
@@ -89,6 +90,20 @@ export default function TabLayout() {
             <Clapperboard color={focused ? "#6DD5ED" : "#6A7282"} size={24} />
           ),
           tabBarActiveTintColor: "#6DD5ED",
+          tabBarInactiveTintColor: "#6A7282",
+          tabBarLabelStyle: {
+            fontFamily: "DMSansB",
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ focused }) => (
+            <User color={focused ? "#4361ee" : "#6A7282"} size={24} />
+          ),
+          tabBarActiveTintColor: "#4361ee",
           tabBarInactiveTintColor: "#6A7282",
           tabBarLabelStyle: {
             fontFamily: "DMSansB",

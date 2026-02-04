@@ -130,6 +130,9 @@ cd api
 # Install dependencies
 dotnet restore
 
+# Install Entity Framework Core
+dotnet tool install --global dotnet-ef
+
 # Configure database connection
 # Update appsettings.json with PostgreSQL connection string
 
@@ -288,5 +291,18 @@ GET /api/movies/watchlist
     ↓
 Updated list displayed
 ```
+
+Applications screenshots:
+
+![Login screen](/assets/login-screen.jpg)
+![Main screen](/assets/main-screen.jpg)
+![Liked screen](/assets/liked-screen.jpg)
+![Profile screen](/assets/profile-screen.jpg)
+![Movie detail screen](/assets/movie-detail-screen.jpg)
+![Native share feature](/assets/native-share-feature.jpg)
+
+Division of labor:
+Artem Pushkarov 144819 - Frontend, backend, documentation
+Stanislav Bazyliak 143067 - Testing, CI, Figma
 
 **Version**: 0.0.1

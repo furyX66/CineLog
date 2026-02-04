@@ -16,7 +16,7 @@ import {
 
 interface IRegisterResponse {
   token: string;
-  user: { id: number; username: string; email: string };
+  user: { id: number; email: string; username: string };
 }
 
 export default function Register() {

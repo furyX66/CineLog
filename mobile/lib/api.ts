@@ -50,12 +50,27 @@ export async function apiPost<T>(
   );
 }
 
+export async function apiPut<T>(
+  body: any,
+  endpoint?: string,
+  token?: string,
+  externalUrl?: string,
+): Promise<T> {
+  return apiFetch<T>(
+    endpoint,
+    { method: "PUT", body: JSON.stringify(body) },
+    token,
+    externalUrl,
+  );
+}
+
 export function extractErrorMessage(fullError: string): string {
   try {
     const jsonMatch = fullError.match(/Error Message:\s*(\{.*\})/);
     if (jsonMatch) {
       const errorJson = JSON.parse(jsonMatch[1]);
       let message =
+        errorJson.errors ||
         errorJson.detail ||
         errorJson.title ||
         errorJson.message ||

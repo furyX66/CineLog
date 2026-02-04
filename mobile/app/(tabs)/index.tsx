@@ -1,9 +1,9 @@
-import Button from "@/components/button";
 import FilmCard from "@/components/main-screen/film-card";
 import { apiGet } from "@/lib/api";
 import { tmdbEndpoints } from "@/lib/tmdb";
 import { useAuth } from "@/stores/auth-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -15,7 +15,6 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StatsGrid from "../../components/main-screen/stats-grid";
 import { IMovieBase } from "../../interfaces/IMovieBase";
-import { useFocusEffect } from "expo-router";
 
 interface ITMDBResponse {
   page: number;
@@ -36,7 +35,7 @@ interface IMovie extends IMovieBase {
 }
 
 export default function Index() {
-  const { token, logout } = useAuth();
+  const { token } = useAuth();
   const [movies, setMovies] = useState<IMovie[]>([]);
   const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
@@ -88,10 +87,6 @@ export default function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleLogout = async () => {
-    await logout();
-  };
-
   const handleLoadMore = () => {
     if (!loading && page < totalPages) {
       fetchMovies(page + 1);
@@ -122,10 +117,6 @@ export default function Index() {
         <Text className="font-[DMSansM] text-white">
           Your personal movie companion
         </Text>
-        {/* Temporary */}
-        <Button className="px-8" onPress={handleLogout}>
-          Logout
-        </Button>
       </View>
       <View className="w-full flex-1 rounded-t-2xl bg-white">
         <FlatList

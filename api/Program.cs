@@ -6,6 +6,7 @@ using api.Dtos;
 using api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -217,7 +218,7 @@ app.MapPost("/api/auth/register", async (RegisterRequestDto requestDto, Applicat
 
         return Results.Created($"/api/users/{user.Id}",
             new AuthResponseDto(
-                User: new UserResponseDto(user.Id, user.Username, user.Email),
+                User: new UserResponseDto(user.Id, user.Email, user.Username),
                 Token: token
             ));
     })
@@ -238,11 +239,72 @@ app.MapPost("/api/auth/login", async (LoginRequestDto requestDto, ApplicationDbC
         var token = jwt.GenerateToken(user);
 
         return Results.Ok(new AuthResponseDto(
-            User: new UserResponseDto(user.Id, user.Username, user.Email),
+            User: new UserResponseDto(user.Id, user.Email, user.Username),
             Token: token
         ));
     })
     .WithName("Login");
+
+#endregion
+
+#region ChangePassword
+
+app.MapPut("/api/account/password",  
+        [Authorize] async (ChangePasswordRequest request, ApplicationDbContext db, HttpContext http) =>
+        {
+            var userId = GetUserId(http);
+            var user = await db.Users.FindAsync(userId);
+        
+            if (user is null)
+                return Results.Unauthorized();
+            
+            if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+                return Results.BadRequest(new { Errors = "Current password is invalid" });
+            
+            if (request.NewPassword.Length < 8)
+                return Results.BadRequest(new { Errors = "New password must be at least 8 characters long" });
+            
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await db.SaveChangesAsync();
+
+            return Results.Ok(new
+            {
+                Message = "Successfully changed password",
+            }); 
+        })
+    .RequireAuthorization();
+
+#endregion
+
+#region UpdateProfile
+
+app.MapPut("/api/account/profile", [Authorize] async (UpdateProfileDto dto, ApplicationDbContext db, HttpContext http) =>
+    {
+        var userId = GetUserId(http);
+        var user = await db.Users.FindAsync(userId);
+    
+        if (user == null) 
+            return Results.Unauthorized();
+        
+        if (string.IsNullOrWhiteSpace(dto.Username) || dto.Username.Length < 3)
+            return Results.BadRequest(new { Errors = "Username mast be at least 3 characters long" });
+        
+        if (await db.Users.AnyAsync(u => u.Username == dto.Username && u.Id != userId))
+            return Results.Conflict(new { Errors = "Username already taken" });
+        
+        if (!IsValidEmail(dto.Email))
+            return Results.BadRequest(new { Errors = "Invalid email format" });
+        
+        if (await db.Users.AnyAsync(u => u.Email == dto.Email && u.Id != userId))
+            return Results.Conflict(new { Errors = "Email already taken" });
+        
+        user.Username = dto.Username;
+        user.Email = dto.Email;
+        await db.SaveChangesAsync();
+
+        return Results.Ok(new UserResponseDto(user.Id, user.Email, user.Username));
+    })
+    .RequireAuthorization();
 
 #endregion
 
